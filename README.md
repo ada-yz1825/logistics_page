@@ -6,6 +6,10 @@
 
 流程图会根据窗口大小和当前节点数量调整卡片尺寸与间距。节点超出屏幕时，可用两侧悬浮按钮、键盘左右方向键、触控板或横向滚动逐步浏览；鼠标移入节点会选中并将其移向视口中央。下方展示节点的定义、边界、作业顺序及资料依据。
 
+正向链路上方的“分支情境”可用鼠标悬停或点击切换：常规交付、揽收前取消、运输中拦截退回、拦截改址、未妥投再投、拒收退回、转站点自提、超期未取退回。卡片按事件发生的时间顺序排列，绿色卡片和回转箭头表示货物开始回流。拦截是否成功、可否改址、暂存期限和再次派送的次数以具体承运商服务规则为准。
+
 图标以统一的提示词生成：`premium 3D isometric logistics icon, polished soft product render, navy blue, cool white, teal and restrained warm amber, transparent background, no text or logo`；每枚图标再指定对应物流对象。生成方式为内置 imagegen 工具。
+
+左上角标识保存为 `assets/brand-logo.png`，同样使用内置 imagegen 生成。提示词为：`Premium 3D isometric logistics app logo icon, square composition. Navy rounded-square badge, dimensional cardboard parcel with teal stripe, one clear curved route arrow wrapping behind the parcel. Sophisticated soft studio lighting, glossy but restrained, strong legibility at 48 pixels. Genuine transparent background, no text, no letters, no watermark.`
 
 页面中的参考资料可通过右上角“参考资料”查看；各环节详情也列出了对应依据。流程是跨行业示意模型，具体节点按运输产品与企业网络而变化。中文界面优先使用 Noto Sans SC，字体无法联网加载时回退至系统中文字体。
