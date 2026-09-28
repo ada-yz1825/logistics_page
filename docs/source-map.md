@@ -15,3 +15,13 @@
 | 未妥投、再投、拒收 | [FedEx Delivery Manager FAQ](https://www.fedex.com/en-us/faq/delivery-manager.html) | 再投次数、通知、自提和最终退回均按具体服务规则执行。 |
 
 退回网络节点由 GS1 的运输交接模型和 UPU 的网络处理作业综合建模。直达返运与网络返运互为可选路径；“退回中转”明确标为可选。任何一个图上节点都不等同于统一规定的行业术语或强制操作步骤。
+
+## 页面用语核验（2026-09-28）
+
+- **交易订单、物流委托、运单、实物揽收**分开处理。GS1 第 3.6.3 节把运输指令及其响应、取件确认、运输状态、交付确认列为不同信息交换；页面的首张卡片将可能跨主体的需求、受理与委托动作归纳展示，但没有把生成运单视为已经接货。
+- **C2B 常规路径**仅表示个人向企业寄件；“退货单”开关才加入退货申请和企业受理。退货受理、接货、收货、检查和处置参考 ASCM SCOR Return，细节因退货政策而异。原先把退货申请写入所有 C2B 寄件的做法已纠正。
+- **网络设施**是 [UPU Domestic Postal System](https://www.upu.int/en/Postal-Solutions/Technical-Solutions/Products/DPS---Domestic-Postal-System) 的收寄、分拣、发运网络和 GS1 第 4.5.2 节货代集散案例的综合示意。始发网点、两个枢纽、目的地分拨、末端站点与返运目的地分拣均明确标为可选；实际线路可跳过、合并或增加节点。这里的中文设施名是便于读图的归纳，不能反推为所有承运商统一设置。
+- **运输中拦截**参考 [UPS Delivery Intercept](https://www.ups.com/us/en/support/tracking-support/change-delivery-options/delivery-intercept)。它是交付前提出的请求，退回发件人、改址、延期、自提等只是可申请选项；主图因此区分“拦截退回”和“拦截未成功”。
+- **揽收前取消**参考 [FedEx 发运取消说明](https://www.fedex.com/en-us/shipping/create-shipping-label.html) 与 [USPS Domestic Labels API](https://developers.usps.com/domesticlabelsv3)。两者只证明特定服务下可取消尚未扫描的发运或未用标签；运费、退款和标签处理必须依所选服务规则，不能推定所有运单都能即时撤销。
+- **末端异常**参考 [FedEx Delivery Manager FAQ](https://www.fedex.com/en-us/faq/delivery-manager.html)、[UPS Delivery Notice](https://www.ups.com/us/en/support/tracking-support/where-is-my-package/how-to-use-infonotice) 及 UPU Convention Manual 的无法投递退回条款。再投、自提、拒收、超期未取互为条件分支；次数、暂存期限和退回安排不是全行业统一值。
+- **可选财务与处置**：ASCM SCOR Return 涵盖申请、受理、接收、诊断或测试、转移等，GS1 返回场景包含退回运输和收货确认。页面中退款、换货、维修、开票、保价等并非每票必经。页面已用“按需”“按规则”等明确条件，且删除了缺乏跨行业依据的“售后时效开始”等定性步骤。

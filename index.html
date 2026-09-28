@@ -198,6 +198,18 @@
     .branch-bar button.branch-dependent.visible{max-width:220px;opacity:1;padding:clamp(5px,.38vw,10px) clamp(10px,.65vw,20px);border-width:1px;margin-left:0;pointer-events:auto;transform:translateX(0) scale(1)}
     @media(max-width:680px){.scene{min-height:58px;gap:4px;padding:5px}.scene-icon{width:27px;height:27px}.scene strong{font-size:10px}.scene .scene-desc{font-size:9px}.scene-glossary{display:block;font-size:9px;padding:6px}.scene-glossary strong{font-size:10px}.scene-glossary dl div{grid-template-columns:1fr;gap:0}.detail-box p,.detail-process li{font-size:10px}}
     @media(max-width:680px){.scene-relation{font-size:.9em}.branch-bar button.branch-dependent.visible{max-width:124px;padding:5px 7px}}
+    .chart-heading strong{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .heading-range{display:flex;align-items:center;gap:7px;flex:0 0 clamp(150px,18vw,340px);color:#418ba0;font-size:22px;font-weight:800;user-select:none}
+    .heading-range input{width:100%;min-width:0;height:28px;margin:0;appearance:none;background:transparent;cursor:pointer;--range-progress:0%}
+    .heading-range input::-webkit-slider-runnable-track{height:8px;border-radius:8px;background:linear-gradient(90deg,#3aaab1 0 var(--range-progress),#d2e6ee var(--range-progress) 100%)}
+    .heading-range input::-moz-range-track{height:8px;border-radius:8px;background:#d2e6ee}
+    .heading-range input::-moz-range-progress{height:8px;border-radius:8px;background:#3aaab1}
+    .heading-range input::-webkit-slider-thumb{appearance:none;width:20px;height:20px;margin-top:-6px;border:3px solid white;border-radius:50%;background:#168b9b;box-shadow:0 2px 7px #18556b55}
+    .heading-range input::-moz-range-thumb{width:14px;height:14px;border:3px solid white;border-radius:50%;background:#168b9b;box-shadow:0 2px 7px #18556b55}
+    .heading-range input:disabled{cursor:default;opacity:.48}
+    .heading-range input:focus-visible{outline:3px solid #edbd68;outline-offset:3px}
+    @media(max-width:680px){.heading-range{flex-basis:90px;gap:2px;font-size:15px}.heading-range input::-webkit-slider-thumb{width:17px;height:17px;margin-top:-5px}}
+    .guide-section{border-top:1px solid #dce9ee;padding:14px 0}.guide-section:first-child{border-top:0;padding-top:0}.guide-section h3{font-size:15px;color:#126f82;margin:0 0 7px}.guide-section ul,.guide-section ol{margin:5px 0 0;padding-left:1.5em}.guide-section li{margin:4px 0;line-height:1.6}.guide-section p{line-height:1.65}.guide-note{background:#eef8f8;border-left:3px solid #2ea9a8;padding:9px 11px;border-radius:4px}
   </style>
 </head>
 <body>
@@ -210,7 +222,7 @@
       <div class="scene-group" id="enterpriseGroup"><div class="group-title">企业发起</div><button type="button" class="scene" data-scene="b2c" aria-pressed="false"><img class="scene-icon" src="assets/scenes/b2c.png" width="72" height="72" decoding="async" alt=""><span class="scene-copy"><strong><span class="scene-code">B2C</span><span class="scene-relation">企业 → 个人</span></strong><span class="scene-desc">商家或仓库备货，通过仓配或承运商送到消费者。</span></span></button><button type="button" class="scene" data-scene="b2b" aria-pressed="false"><img class="scene-icon" src="assets/scenes/b2b.png" width="72" height="72" decoding="async" alt=""><span class="scene-copy"><strong><span class="scene-code">B2B</span><span class="scene-relation">企业 → 企业</span></strong><span class="scene-desc">采购、调拨与销售发货，可走整车直达或零担网络。</span></span></button><div class="route-block" id="routeBlock"><span id="routeTitle">运输组织（示例）</span><button type="button" class="route" data-route="direct" aria-pressed="false">直达运输</button><button type="button" class="route active" data-route="network" aria-pressed="true">网点／分拣网络</button></div></div>
       <div class="rail-note scene-glossary"><strong>四种业务场景</strong><p>按本次发货方 → 收货方划分</p><dl><div><dt>C2C</dt><dd>个人向另一位个人寄件</dd></div><div><dt>C2B</dt><dd>个人向企业退货、送检等</dd></div><div><dt>B2C</dt><dd>商家或仓库向消费者发货</dd></div><div><dt>B2B</dt><dd>企业间采购、销售或调拨发货</dd></div></dl></div>
     </aside>
-    <div class="surface"><section class="chart" id="chart" aria-label="物流全链路流程图"><div class="chart-inner"><div class="chart-heading"><strong id="flowTitle"></strong></div><div class="branch-bar" id="branchBar" aria-label="流程分支"><span class="branch-caption">流程情境</span><button type="button" data-branch="normal" aria-pressed="true">常规交付</button><button type="button" data-branch="cancel" aria-pressed="false">揽收前取消</button><button type="button" data-branch="intercept" aria-pressed="false">运输中拦截退回</button><button type="button" class="branch-dependent" data-branch="interceptFail" aria-pressed="false" aria-hidden="true" tabindex="-1">拦截未成功</button><button type="button" data-branch="reroute" aria-pressed="false">拦截改址</button><button type="button" data-branch="failed" aria-pressed="false">未妥投再投</button><button type="button" data-branch="refuse" aria-pressed="false">拒收退回</button><button type="button" data-branch="pickupPoint" aria-pressed="false">转站点自提</button><button type="button" data-branch="unclaimed" aria-pressed="false">超期未取退回</button></div><div class="branch-context" id="branchContext" aria-live="polite"></div><div class="flow-scroll" id="flowScroll"><div class="flow" id="flow"></div></div><div class="flow-nav" aria-label="流程节点导航"><button type="button" id="prevNode" aria-label="上一个节点">‹</button><button type="button" id="nextNode" aria-label="下一个节点">›</button></div></div></section><section class="detail" id="detail" aria-live="polite"></section></div>
+    <div class="surface"><section class="chart" id="chart" aria-label="物流全链路流程图"><div class="chart-inner"><div class="chart-heading"><strong id="flowTitle"></strong><div class="heading-range"><span aria-hidden="true">‹</span><input id="flowRange" type="range" min="0" max="1000" value="0" aria-label="横向浏览流程卡片"><span aria-hidden="true">›</span></div></div><div class="branch-bar" id="branchBar" aria-label="流程分支"><span class="branch-caption">流程情境</span><button type="button" data-branch="normal" aria-pressed="true">常规交付</button><button type="button" data-branch="cancel" aria-pressed="false">揽收前取消</button><button type="button" data-branch="intercept" aria-pressed="false">运输中拦截退回</button><button type="button" class="branch-dependent" data-branch="interceptFail" aria-pressed="false" aria-hidden="true" tabindex="-1">拦截未成功</button><button type="button" data-branch="reroute" aria-pressed="false">拦截改址</button><button type="button" data-branch="failed" aria-pressed="false">未妥投再投</button><button type="button" data-branch="refuse" aria-pressed="false">拒收退回</button><button type="button" data-branch="pickupPoint" aria-pressed="false">转站点自提</button><button type="button" data-branch="unclaimed" aria-pressed="false">超期未取退回</button></div><div class="branch-context" id="branchContext" aria-live="polite"></div><div class="flow-scroll" id="flowScroll"><div class="flow" id="flow"></div></div><div class="flow-nav" aria-label="流程节点导航"><button type="button" id="prevNode" aria-label="上一个节点">‹</button><button type="button" id="nextNode" aria-label="下一个节点">›</button></div></div></section><section class="detail" id="detail" aria-live="polite"></section></div>
   </main>
 </div>
 <div class="modal-layer" id="modalLayer" aria-hidden="true"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal-head"><h2 id="modalTitle"></h2><button type="button" id="closeModal">关闭 ×</button></div><div class="modal-body" id="modalBody"></div></div></div>
@@ -228,62 +240,62 @@ const SOURCES=[
 ];
 const SCENES={c2c:'C2C 个人 → 个人',c2b:'C2B 个人 → 企业',b2c:'B2C 企业 → 个人',b2b:'B2B 企业 → 企业'};
 const FORWARD=[
- {id:'order',title:'业务订单与物流委托',icon:'order',caption:'线上／线下发起服务',steps:['明确发运需求','提交物流委托','确认服务与运单'],detail:'交易、寄件或调拨先形成发运需求；服务购买方向平台、物流企业或货代下单。业务订单、物流委托和实际揽收是不同状态。',by:{c2c:['填写寄收地址与物品','选寄递产品与取件方式','报价／保价并提交寄件单','平台受理并生成运单'],c2b:['提交退货／返修／回收申请','获得回寄码或取件单','指定企业收货点与承运方','生成回寄运单'],b2c:['交易订单与支付校验','商家／平台接单','选择仓配或快递服务','拆单／合单并生成运单'],b2b:['采购／销售／调拨计划','核对货量、交期与地点','询价／合同发运','订车／订舱并确认时窗']}},
- {id:'prepare',title:'备货与包装',icon:'parcel',caption:'发货方内部作业',steps:['备货与核对','包装／装载单元','标签与单证'],detail:'在发货方场所完成准备。个人包装、商家拣货、企业托盘化的作业不同，但都发生在承运商接货之前。',by:{c2c:['整理并包装物品','核对禁限寄要求','准备交件'],c2b:['按回寄要求包装','备齐凭证与配件','等待取件'],b2c:['库存分配与拣货','复核、包装、贴标','出库暂存'],b2b:['工厂／仓库备货','托盘化与装箱','装箱单、批次与集货']}},
- {id:'pickup',title:'揽收与交接',icon:'handover',caption:'实物进入物流网络',steps:['上门揽收／交件','清点计量与核验','交接扫描'],detail:'物流方在寄件处、仓库月台或网点实际接到货物。接单、仓库出库与承运商接货应分别记录。',by:{c2c:['快递员上门／到店','实名与收寄验视','称重量方','揽收扫描'],c2b:['上门取回／网点交件','核对回寄任务','称重与揽收','回收交接'],b2c:['仓库／商家出库交接','承运商清点揽收','扫描与差异反馈'],b2b:['车辆到厂／仓','月台装货','件数／封签核对','签交接单']}},
- {id:'origin',title:'始发网点',icon:'station',caption:'接收与区域集货',steps:['到件扫描','区域集货','发往始发分拨'],detail:'快递或零担网络常见的始发接入点。工厂整车直送一般跳过。'},
- {id:'sort',title:'始发分拣中心',icon:'sort',caption:'按目的地形成批次',steps:['卸车与到件扫描','安检／计量','解包与分拣','路由归集','建包装车'],detail:'在同一分拣中心将零散货物按目的地或下一程线路归集；异常件在此登记。'},
- {id:'hub',title:'始发枢纽',icon:'hub',caption:'跨线路组织',steps:['到车交接','卸车与跨线分流','集货与配载','装车发出'],detail:'跨线路转运、越库和集货在始发枢纽完成；一些线路可从分拣中心直接进入干线。'},
+ {id:'order',title:'业务订单与物流委托',icon:'order',caption:'线上／线下发起服务',steps:['明确发运需求','提交物流委托','确认服务与运单'],detail:'交易、寄件或调拨先形成发运需求；服务购买方向平台、物流企业或货代下单。业务订单、物流委托和实际揽收是不同状态。',by:{c2c:['填写寄收地址与物品','选寄递产品与取件方式','确认费用与可选服务','提交寄件信息，受理后生成运单'],c2b:['填写物品及寄收信息','选择寄递服务与交件方式','提交寄件信息','受理后生成运单'],b2c:['确认业务订单与收货信息','商家／平台接单','选择仓配或快递服务','按需拆合单并生成运单'],b2b:['采购／销售／调拨计划','核对货量、交期与地点','询价／合同发运','订车／订舱并确认时窗']}},
+ {id:'prepare',title:'备货与包装',icon:'parcel',caption:'发货方内部作业',steps:['备货与核对','包装／装载单元','标签与单证'],detail:'在发货方场所完成准备。个人包装、商家拣货、企业托盘化的作业不同，但都发生在承运商接货之前。',by:{c2c:['整理并包装物品','核对承运服务要求','准备交件'],c2b:['按所选服务包装','按需备齐随货资料','等待交件'],b2c:['库存分配与拣货','复核、包装、贴标','出库暂存'],b2b:['工厂／仓库备货','托盘化与装箱','装箱单、批次与集货']}},
+ {id:'pickup',title:'揽收与交接',icon:'handover',caption:'实物进入物流网络',steps:['上门揽收／交件','清点计量与核验','交接扫描'],detail:'物流方在寄件处、仓库月台或网点实际接到货物。接单、仓库出库与承运商接货应分别记录。',by:{c2c:['快递员上门／到店交件','按服务要求核验货物','按需称重计量','揽收扫描'],c2b:['上门揽收／网点交件','核对寄件信息','按需称重计量','交接扫描'],b2c:['仓库／商家出库交接','承运商清点揽收','扫描与差异反馈'],b2b:['车辆到厂／仓','月台装货','件数／封签核对','签交接单']}},
+ {id:'origin',title:'始发网点（可选）',icon:'station',caption:'接收与区域集货',steps:['到件扫描','区域集货','发往始发分拨'],detail:'快递或零担网络常见的始发接入点。工厂整车直送一般跳过。'},
+ {id:'sort',title:'始发分拣中心',icon:'sort',caption:'按目的地形成批次',steps:['卸车与到件扫描','按需检查／计量','按需解包与分拣','路由归集','建包装车'],detail:'在同一分拣中心将零散货物按目的地或下一程线路归集；异常件在此登记。'},
+ {id:'hub',title:'始发枢纽（可选）',icon:'hub',caption:'跨线路组织',steps:['到车交接','卸车与跨线分流','集货与配载','装车发出'],detail:'跨线路转运、越库和集货在始发枢纽完成；一些线路可从分拣中心直接进入干线。'},
  {id:'linehaul',title:'干线发运与在途',icon:'truck',caption:'公路／铁路／航空／水运',steps:['形成运输需求','匹配运力与班次','调度与配载','装车／装舱','实际发车并跟踪'],detail:'实际发车是运输执行开始的明确状态。装车完成不等于发车；在途应跟踪位置、时效和异常。'},
- {id:'relay',title:'中转枢纽',icon:'transfer',caption:'可选 0–N 次',steps:['到达扫描','卸货／换装','下程路由分流','再集货与配载','二次发运'],detail:'依网络布局和运输方式，可能没有中转，也可能多次中转；直达运输通常跳过。'},
- {id:'desthub',title:'目的地枢纽',icon:'hub',caption:'接入区域网络',steps:['干线到达交接','到件扫描','区域分流','发往目的地分拨'],detail:'目的地枢纽把跨区货物导入区域配送网络；直送收货方的整车可跳过。'},
- {id:'destsort',title:'目的地分拨',icon:'sort',caption:'按末端站点归集',steps:['到车卸货','扫描与分拣','路由归集','建包／装车','发往站点'],detail:'在同一分拨中心把货物分配到目的地站点、营业部或支线车辆。'},
- {id:'station',title:'到站与配送交接',icon:'station',caption:'站点连续作业',steps:['站点接货与扫描','落地分件／暂存','分配配送员或车辆','装车并规划路线'],detail:'到站、分件、暂存和配送员接货发生在同一站点，合并为一张卡片；到站不等于签收。'},
- {id:'delivery',title:'末端交付与签收',icon:'delivery',caption:'收货地点连续作业',steps:['送达或约定自提','核对收货对象','签收／验收','异常与结果回传'],detail:'在收货地点完成交付与签收；企业入库验收可能晚于承运商交付，应保留独立记录。',by:{c2c:['上门派送／自提','收件人或代收人签收','拒收／未妥投处理','结果回传'],c2b:['送达企业／回收点','企业签收','检测或分类任务创建','异常反馈'],b2c:['上门派送／驿站自提','消费者签收','售后时效开始','拒收／未妥投处理'],b2b:['预约到货与卸货','收货方清点签单','数量／质量验收','回单与差异记录']}},
- {id:'close',title:'结算与售后闭环',icon:'settlement',caption:'订单数据与费用闭环',steps:['计费对账','结算／开票','投诉与理赔','状态归档'],detail:'费用结算、售后和异常处理可与实物流动部分并行。退货、返修、回收可再触发新的逆向链路。'}
+ {id:'relay',title:'中转枢纽（可选）',icon:'transfer',caption:'依线路决定',steps:['到达扫描','卸货／换装','下程路由分流','再集货与配载','二次发运'],detail:'依网络布局和运输方式，可能没有中转，也可能多次中转；直达运输通常跳过。'},
+ {id:'desthub',title:'目的地枢纽（可选）',icon:'hub',caption:'接入区域网络',steps:['干线到达交接','到件扫描','区域分流','发往目的地分拨'],detail:'目的地枢纽把跨区货物导入区域配送网络；直送收货方的整车可跳过。'},
+ {id:'destsort',title:'目的地分拨（可选）',icon:'sort',caption:'按末端站点归集',steps:['到车卸货','扫描与分拣','路由归集','建包／装车','发往站点'],detail:'在同一分拨中心把货物分配到目的地站点、营业部或支线车辆。'},
+ {id:'station',title:'到站与配送交接（可选）',icon:'station',caption:'站点连续作业',steps:['站点接货与扫描','落地分件／暂存','分配配送员或车辆','装车并规划路线'],detail:'到站、分件、暂存和配送员接货发生在同一站点，合并为一张卡片；到站不等于签收。'},
+ {id:'delivery',title:'末端交付与签收',icon:'delivery',caption:'收货地点连续作业',steps:['送达或约定自提','核对收货对象','签收／验收','异常与结果回传'],detail:'在收货地点完成交付与签收；企业入库验收可能晚于承运商交付，应保留独立记录。',by:{c2c:['上门派送／自提','按约定方式核对接收方','收件人或代收人签收','结果回传'],c2b:['送达企业接收点','核对接收信息','企业签收或登记差异','结果回传'],b2c:['上门派送／约定自提','按约定方式完成交付','消费者或代收人签收','回传交付结果'],b2b:['预约到货与卸货','收货方清点签单','清点件数与外观','回单与差异记录']}},
+ {id:'close',title:'结算与售后闭环',icon:'settlement',caption:'订单数据与费用闭环',steps:['回传交付结果','按约定计费对账','按需结算／开票','发生售后时另行处理'],detail:'费用结算与售后处理依合同或服务规则发生，也可能与实物流动并行。退货、返修、回收可再触发新的逆向链路。'}
 ];
 const REVERSE=[
- {id:'r-request',title:'逆向申请与受理',icon:'reverse',caption:'形成回流服务需求',steps:['提交原因和货物信息','审核规则与凭证','明确承担方和费用','生成逆向订单'],detail:'拒收、退货、返修、召回、回收等触发新的物流委托；原交易售后单与逆向运单应关联。',by:{c2c:['发起拒收／退回','确认原寄件人','确定退回费用','生成退回任务'],c2b:['提交退货申请','企业审核与受理','确认回寄条件','生成退货单与回寄运单'],b2c:['消费者申请退货','商家／平台审核','确定退款与运费规则','生成退货单'],b2b:['企业退货／召回','核对合同与批次','明确责任与费用','生成返运委托']}},
- {id:'r-book',title:'回寄预约',icon:'calendar',caption:'确定取件方式与时间',steps:['确定取件地址','选择上门／自行交件','预约时间窗口','准备包装与标签'],detail:'取件预约与物流委托通常在线上完成；实物尚未进入逆向运输网络。'},
- {id:'r-pick',title:'逆向揽收',icon:'handover',caption:'退回货物交接',steps:['交件核验','称重／计量与扫描','记录货物状态','责任交接'],detail:'承运方实际取得退回货物，建立原订单、逆向运单与交接记录的对应关系。'},
+ {id:'r-request',title:'退货申请与受理',icon:'reverse',caption:'形成退货服务需求',steps:['提交退货原因与货物信息','按退货规则审核','确定回寄方式与地址','按需生成退货单／运单'],detail:'个人提出退货请求，企业按退货规则审核，并确定回寄地址、方式及可能的费用安排。退货单与实际物流运单属于不同记录；申请受理不代表已完成取件。',by:{c2c:['发起拒收／退回','确认原寄件人','确定退回费用','生成退回任务'],c2b:['提交退货申请','企业按规则受理','确认回寄条件','按需生成退货单／运单'],b2c:['消费者申请退货','商家／平台审核','确定退款与运费规则','生成退货单'],b2b:['企业退货／召回','核对合同与批次','明确责任与费用','生成返运委托']}},
+ {id:'r-book',title:'回寄预约',icon:'calendar',caption:'确定取件方式与时间',steps:['确定交件地点','选择上门／自行交件','按需预约时间','准备包装与所需标签'],detail:'取件方式和时间可在线上、线下或双方约定；实物尚未进入逆向运输网络。'},
+ {id:'r-pick',title:'逆向揽收',icon:'handover',caption:'退回货物交接',steps:['交件核验','按需计量与扫描','记录交接结果','完成承运方接货'],detail:'承运方实际取得退回货物，建立原订单、逆向运单与交接记录的对应关系。'},
  {id:'r-receive',title:'退回收货确认',icon:'warehouse',caption:'收货方核对实物',steps:['收货方接收实物','核对数量与状态','确认收货或登记差异'],detail:'GS1 将承运方的交付结果与目的地仓库的收货确认区分。目的地可以是原寄件人、商家仓、维修中心或回收仓；入库和检验依具体业务继续办理。',by:{c2c:['原寄件人接收','核对退回货物','确认或反馈差异'],c2b:['企业退货仓接收','核对退货单与货物','确认或登记差异'],b2c:['商家仓接收','核对退货单','收货确认／差异登记'],b2b:['企业仓接收','核对批次与数量','确认或登记差异']}},
- {id:'r-inspect',title:'检测与分类',icon:'inspect',caption:'确定货物后续去向',steps:['外观／功能检测','记录成色和损伤','分级分类','确定处置方案'],detail:'检测结果决定维修、换货、复售、再利用、再生或报废；个人退回原寄件人的货物可略过企业检测。'},
- {id:'r-close',title:'处置与结算',icon:'recycle',caption:'实物、资金和状态闭环',steps:['退款／换货／返还','复售／再生／报废','费用对账','状态归档'],detail:'实物处置、财务结算和售后状态回传完成后，逆向订单闭环。',by:{c2c:['原寄件人确认收货','退回费用结算','关闭退回任务'],c2b:['退货验收与处置','退款或换货','结算与归档'],b2c:['退款／换货','复售／维修／报废','对账与归档'],b2b:['换货／索赔／返修','库存与合同调整','对账与归档']}}
+ {id:'r-inspect',title:'退货检查与分类（按需）',icon:'inspect',caption:'依据退货规则确定去向',steps:['核对退货单与实物','按退货规则检查','记录差异或检验结论','确定后续去向'],detail:'退货检查的范围由业务规则决定；可能产生重新入库、维修、换货或其他处置结果，并非每件货物都需要功能检测。'},
+ {id:'r-close',title:'处置与结算',icon:'recycle',caption:'实物、资金和状态闭环',steps:['按规则确定处理结果','记录实物去向','按需退款／费用对账','更新退货单状态'],detail:'退货实物去向和退货单状态需要回传；退款、换货或费用结算仅在对应交易与服务规则适用时发生。',by:{c2c:['原寄件人确认收货','退回费用结算','关闭退回任务'],c2b:['退货检查与处置（按需）','按规则退款或换货','更新退货单状态'],b2c:['退款／换货','复售／维修／报废','对账与归档'],b2b:['换货／索赔／返修','库存与合同调整','对账与归档']}}
 ];
 const BRANCHES={
   normal:{label:'常规交付',hint:'按选定业务场景展示常规正向链路；实际网络可增减中转与站点。'},
   return:{label:'退货单',hint:'个人向企业发起退货申请并形成退货单；受理后安排回寄、运输、收货与后续处置。'},
   cancel:{label:'揽收前取消',hint:'在实物交接前取消：受理并核查状态后关闭委托，无需回运。'},
-  intercept:{label:'运输中拦截退回',hint:'以干线在途提出拦截为示例；请求需核验，执行成功后才进入退回运输。'},
+  intercept:{label:'运输中拦截退回',hint:'以在途提出拦截为示例；请求需核验，执行成功后才进入退回运输。'},
   interceptFail:{label:'拦截未成功',hint:'拦截请求未能在交付前执行时，货物仍可能沿原路径继续配送；后续以实际状态为准。'},
   reroute:{label:'拦截改址',hint:'以在途改址为示例；承运方核验可执行性后重新规划后续路由。'},
-  failed:{label:'未妥投再投',hint:'首次派送未完成，货物暂存并改约或补全地址后再次派送。'},
-  refuse:{label:'拒收退回',hint:'收货方拒收后先记录原因并确认处置，再按约定回流至发货方。'},
+  failed:{label:'未妥投再投',hint:'首次派送未完成，可按服务规则暂存、补全地址或改约后再次派送。'},
+  refuse:{label:'拒收退回',hint:'收货方拒收后先记录结果并确认处置，再按约定回流至指定地点。'},
   pickupPoint:{label:'转站点自提',hint:'按服务规则改为站点或自提点接收，通知收货方并完成取件核验。'},
   unclaimed:{label:'超期未取退回',hint:'站点通知后在约定期限内无人取件，按规则发起退回。'}
 };
 const EXCEPTION_STAGES={
-  cancelled:{id:'cancelled',title:'揽收前取消',icon:'order',caption:'未交运 · 不发生返运',steps:['提交取消请求','核查是否已揽收','取消未使用的运单／标签','按服务规则处理费用'],detail:'FedEx 对未扫描货物提供取消发运，USPS 对未使用标签提供取消或退款路径。已揽收的货物不能视为在原地取消，应另行请求拦截。',branchType:'decision'},
-  interceptRequest:{id:'interceptRequest',title:'拦截申请与核验',icon:'reverse',caption:'在途变更 · 成功不保证',steps:['发起拦截／改址请求','核验身份与服务规则','定位最近可控节点','反馈可否执行'],detail:'拦截是请求，不是货物立即停止。可执行性取决于当前位置、服务条款、时效和承运网络；货物可能已接近妥投。',branchType:'decision'},
+  cancelled:{id:'cancelled',title:'揽收前取消',icon:'order',caption:'未交运 · 不发生返运',steps:['提交取消请求','核查是否已揽收','按规则取消未用运单／标签','按服务规则处理费用'],detail:'FedEx 对未扫描货物提供取消发运，USPS 对未使用标签提供取消或退款路径。已揽收的货物不能视为在原地取消，应另行请求拦截。',branchType:'decision'},
+  interceptRequest:{id:'interceptRequest',title:'拦截申请与核验',icon:'reverse',caption:'在途变更 · 成功不保证',steps:['发起拦截／改址请求','核验身份与服务规则','核对当前运输状态','反馈可否执行'],detail:'拦截是请求，不是货物立即停止。可执行性取决于当前位置、服务条款、时效和承运网络；货物可能已接近妥投。',branchType:'decision'},
   interceptExecute:{id:'interceptExecute',title:'拦截结果确认',icon:'hub',caption:'成功后才变更后续处理',steps:['承运方处理拦截请求','确认是否已在交付前完成','成功时执行退回／改址选项','通知相关方处理结果'],detail:'UPS 将“退回发件人”和“改址”列为交付前可申请的拦截选项，并说明费用在请求完成时收取。申请不等于执行成功；失败时货物仍可能沿原路径交付。',branchType:'decision'},
   interceptFailed:{id:'interceptFailed',title:'拦截未完成',icon:'hub',caption:'按原运输状态继续',steps:['承运方反馈未完成结果','核对当前货物位置','继续原有运输或交付','更新相关方状态'],detail:'UPS 的交付拦截服务是交付前的请求，不能保证每个请求都成功。未执行退回或改址时，应以承运方实际运输状态和交付结果为准。',branchType:'decision'},
-  returnClose:{id:'returnClose',title:'退回结算与归档',icon:'settlement',caption:'原订单与返运状态关联',steps:['核对退回结果','处理费用与退款','更新订单／运单状态','完成归档'],detail:'把原履约、退回运输和费用状态关联起来，处理可能的退款、返运费或差异责任。',branchType:'return'},
-  replan:{id:'replan',title:'改址后继续配送',icon:'transfer',caption:'承运方确认后的新目的地',steps:['确认可用的改址选项','核对新的收货地址','确认相关费用或时效变化','按新地址继续配送'],detail:'UPS 的拦截服务允许在交付前请求将货物送往另一地址；是否允许及实际费用以承运商服务条件和执行结果为准。',branchType:'decision'},
-  attempt:{id:'attempt',title:'派送尝试',icon:'delivery',caption:'送达但未完成签收',steps:['联系并到达收货点','核验地址与接收方','尝试交付','记录现场结果'],detail:'派送尝试与签收不同。无人接收、地址问题或收货方拒收都应形成明确结果，再选择重派、改约、自提或退回。',branchType:'decision'},
-  failedAttempt:{id:'failedAttempt',title:'未妥投处理',icon:'station',caption:'未完成交付',steps:['记录未妥投原因','联系发件／收件方','确定改约或补充信息','货物回站暂存'],detail:'未妥投不等于拒收，也不一定立即退回。可按服务规则安排再投、暂存、自提或最终退回。',branchType:'decision'},
+  returnClose:{id:'returnClose',title:'退回结算与归档',icon:'settlement',caption:'原订单与返运状态关联',steps:['核对退回交付结果','按规则处理费用／退款','更新订单／运单状态','完成归档'],detail:'把原履约、退回运输和费用状态关联起来，处理可能的退款、返运费或差异责任。',branchType:'return'},
+  replan:{id:'replan',title:'改址后继续配送',icon:'transfer',caption:'承运方确认后的新目的地',steps:['核对可用的改址选项','核对新的收货地址','确认相关费用或时效变化','获准后按新地址配送'],detail:'UPS 的拦截服务允许在交付前请求将货物送往另一地址；是否允许及实际费用以承运商服务条件和执行结果为准。',branchType:'decision'},
+  attempt:{id:'attempt',title:'派送尝试',icon:'delivery',caption:'送达但未完成签收',steps:['按地址尝试交付','核验地址与接收方','尝试交付','记录现场结果'],detail:'派送尝试与签收不同。无人接收、地址问题或收货方拒收都应形成明确结果，再选择重派、改约、自提或退回。',branchType:'decision'},
+  failedAttempt:{id:'failedAttempt',title:'未妥投处理',icon:'station',caption:'未完成交付',steps:['记录未妥投原因','联系发件／收件方','确定改约或补充信息','按规则暂存或另行安排'],detail:'未妥投不等于拒收，也不一定立即退回。可按服务规则安排再投、暂存、自提或最终退回。',branchType:'decision'},
   redelivery:{id:'redelivery',title:'再次派送与签收',icon:'delivery',caption:'完成改约后的再次交付',steps:['确认新时间或地址','重新分配配送任务','再次派送','签收或继续异常处理'],detail:'再次派送是新的配送尝试。若仍无法交付，可能进入暂存、自提或退回处理，具体次数取决于服务规则。',branchType:'resolution'},
-  refusal:{id:'refusal',title:'拒收与退回决定',icon:'reverse',caption:'收货方明确不接收',steps:['记录拒收事实与原因','停止交付并保管货物','通知发货方／平台','确认退回方案'],detail:'拒收发生在交付环节，承运方需记录原因并按合同或服务规则取得退回指令。拒收后的货物尚需完成返运和接收。',branchType:'decision'},
+  refusal:{id:'refusal',title:'拒收与退回决定',icon:'reverse',caption:'收货方明确不接收',steps:['记录拒收结果与原因','停止交付并保管货物','通知相关方','按规则确认后续处理'],detail:'拒收发生在交付环节，承运方需记录原因并按合同或服务规则取得退回指令。拒收后的货物尚需完成返运和接收。',branchType:'decision'},
   pickupNotice:{id:'pickupNotice',title:'自提点入站与通知',icon:'station',caption:'改变末端交付方式',steps:['货物转入自提点','扫描入站与暂存','通知收货方','告知取件期限'],detail:'自提点或营业网点在接货后保管货物并通知收货方。转自提须符合服务规则和收货方选择，不等于已经完成交付。',branchType:'decision'},
-  pickupSign:{id:'pickupSign',title:'自提核验与交付',icon:'delivery',caption:'收货方到点领取',steps:['到店出示取件凭证','核对身份及货物','现场交付／签收','回传完成状态'],detail:'收货方到自提点领取并完成核验，货物才从自提点转交给收货方；通知已发送不等于妥投。',branchType:'resolution'},
-  unclaimedReturn:{id:'unclaimedReturn',title:'超期未取与退回决定',icon:'reverse',caption:'暂存期限结束',steps:['确认取件期限届满','记录未领取原因','通知相关方','按规则生成退回任务'],detail:'在服务约定的暂存期限内未被领取时，可按发货方指令或服务规则退回；期限和处置方式因产品而异。',branchType:'decision'}
+  pickupSign:{id:'pickupSign',title:'自提核验与交付',icon:'delivery',caption:'收货方到点领取',steps:['按规则出示取件凭证','核对身份及货物','现场交付／签收','回传完成状态'],detail:'收货方到自提点领取并完成核验，货物才从自提点转交给收货方；通知已发送不等于妥投。',branchType:'resolution'},
+  unclaimedReturn:{id:'unclaimedReturn',title:'超期未取与退回决定',icon:'reverse',caption:'暂存期限结束',steps:['核对约定取件期限','记录未领取原因','通知相关方','按规则安排退回'],detail:'在服务约定的暂存期限内未被领取时，可按发货方指令或服务规则退回；期限和处置方式因产品而异。',branchType:'decision'}
 };
 const RETURN_NETWORK={
   intake:{id:'r-intake',title:'退回接入与集货',icon:'station',caption:'网络返运 · 接入点',steps:['核对退回标识和目的地','记录承运方接货状态','交接至始发处理设施'],detail:'退回件已由承运方控制后，按退回目的地进入其网络。邮政或快递网络可在网点、营业部等接入点完成接收和发运准备；直达返运不经过此节点。',branchType:'return'},
   sort:{id:'r-sort',title:'退回分拣与发运',icon:'sort',caption:'网络返运 · 始发处理',steps:['到件交接','按退回目的地分拣','形成发运批次','交下一运输区间'],detail:'UPU 的邮政系统把邮件接收、分拣和发运列为网络作业。这里把退回件作为待运输货物按新的目的地组织；不同企业可能在同一设施合并这些作业。',branchType:'return'},
   linehaul:{id:'r-linehaul',title:'退回区间运输',icon:'truck',caption:'网络返运 · 在途',steps:['确认退回运输指令','完成装载交接','运输区间发运','在途状态回传'],detail:'GS1 退货案例包含运输指令、承运商接货、运输状态和目的地交付。跨区退回可能经过长距离区间；同城路径可省略这一独立节点。',branchType:'return'},
   relay:{id:'r-relay',title:'退回中转（可选）',icon:'transfer',caption:'可选 · 按承运网络',steps:['中转地点到达交接','按下一程方向分流','换装或交下一承运方','更新运输状态'],detail:'GS1 的货代多承运段模型包含始发集货、主运输段和末段承运。退回是否需要中转由承运网络和目的地决定；直达路径不经过中转。',branchType:'return'},
-  destination:{id:'r-destination',title:'退回目的地分拣',icon:'sort',caption:'网络返运 · 目的地区域',steps:['运输到达交接','按退回收件地点分流','交末段配送'],detail:'网络运输到达目的地区域后，可再次分拣并移交末段配送。该节点只适用于设有目的地分拣设施的路径。',branchType:'return'},
-  dropoff:{id:'r-dropoff',title:'退回交付',icon:'delivery',caption:'承运方向收货点交货',steps:['确认退回收货地点','送达并交接货物','取得交付结果','回传最终运输通知'],detail:'GS1 退货流程将承运方的交付结果通知与收货仓库的收货确认分开。交付完成后，收货方仍需另行核对和处理实物。',branchType:'return'},
+  destination:{id:'r-destination',title:'退回目的地分拣（可选）',icon:'sort',caption:'网络返运 · 目的地区域',steps:['运输到达交接','按退回收件地点分流','交末段配送'],detail:'网络运输到达目的地区域后，可再次分拣并移交末段配送。该节点只适用于设有目的地分拣设施的路径。',branchType:'return'},
+  dropoff:{id:'r-dropoff',title:'退回交付',icon:'delivery',caption:'承运方向收货点交货',steps:['确认退回收货地点','送达并交接货物','取得交付结果','回传交付结果'],detail:'GS1 退货流程将承运方的交付结果通知与收货仓库的收货确认分开。交付完成后，收货方仍需另行核对和处理实物。',branchType:'return'},
   direct:{id:'r-direct',title:'退回直达运输',icon:'truck',caption:'无需网点分拣和中转',steps:['确认承运方与退回目的地','完成装载交接','直接运输至收货地点','回传运输状态'],detail:'GS1 的退货案例允许承运方从退回起点直接运至指定收货仓；该路径不经过独立的网点、分拣和中转设施。',branchType:'return'}
 };
 const ESC=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -348,24 +360,24 @@ const EVIDENCE={
 };
 const EXPLAIN={
   order:'这一节点定义的是运输需求的形成和物流服务的受理。发起人可能先完成交易、采购、调拨或寄件申请，再向平台、商家或承运商提交物品、收发地址、时效与服务要求。物流委托和运单可以在这里生成，但实物尚未完成交接；是否已经付款，也不等于运输已经开始。',
-  prepare:'发货方在原地点把待发物品变成可以交运的货物。典型作业包括确认库存或备货、拣取和复核、包装、贴标，以及按订单或运输要求集中。个人寄件通常以整理物品和核对禁限寄要求为主；企业发货可能涉及库存分配、波次拣选与出库准备。',
-  pickup:'这是实物从发货方转交给物流网络的关键边界。承运方可以上门揽收，寄件人也可以到店或站点交件；现场通常核验货物、称重计量、确认包装并扫描接收。揽收完成后，责任方和货物状态发生变化，货物才进入后续集货或运输网络。',
+  prepare:'发货方在原地点把待发物品变成可以交运的货物。典型作业包括确认库存或备货、拣取和复核、包装、贴标，以及按订单或运输要求集中。个人寄件通常以整理物品和核对承运服务要求为主；企业发货可能涉及库存分配、波次拣选与出库准备。',
+  pickup:'这是实物从发货方转交给物流网络的关键边界。承运方可以上门揽收，寄件人也可以到店或站点交件；现场可依服务规则核验货物、计量、确认包装并扫描接收。揽收完成后，责任方和货物状态发生变化，货物才进入后续集货或运输网络。',
   origin:'始发网点或营业部把本区域不同来源的货物集中起来，并按去向或下一作业地点形成交接批次。这里强调区域集货和出站组织；若货物从发货地直接送到分拣中心、枢纽或目的地，该节点可跳过。',
-  sort:'分拣中心根据路由把混合到件拆分为不同去向的作业单元。到件扫描、安检或计量、异常处理、自动或人工分拣、建包与装载通常发生在同一设施内。分拣结果决定货物进入哪一条后续线路。',
+  sort:'分拣中心根据路由把混合到件拆分为不同去向的作业单元。到件扫描、按需检查或计量、异常处理、自动或人工分拣、建包与装载通常发生在同一设施内。分拣结果决定货物进入哪一条后续线路。',
   hub:'始发枢纽承接多个网点或分拣中心的货物，将其组织成跨区域运输批次。核心是到发交接、集货、配载与装车；不同企业可能把枢纽和分拣中心合并在一处，不一定存在独立设施。',
-  linehaul:'干线是两个主要网络节点之间的较长距离运输。运输需求形成后，还需匹配运力、安排班次或车辆、配载与装车；车辆或班次实际发出才进入在途状态。运输方式可以是公路、铁路、航空、水运或多式联运。',
+  linehaul:'干线是两个主要网络节点之间的较长距离运输。运输需求形成后，还需匹配运力、安排班次或车辆、配载与装车；车辆或班次实际发出才进入在途状态。运输方式和线路取决于承运服务及网络安排。',
   relay:'中转枢纽是可选节点。货物到达后扫描交接、卸载、按下一程路由重新组织、换装并发出。跨区域线路、网络覆盖和运力安排会决定是否经过一次或多次中转；直达运输则不需要这一环节。',
   desthub:'目的地枢纽接收长距离运输到达的货物，再按城市或区域去向分流。此处完成干线到达与目的地网络的交接；随后货物可能进入分拨中心，也可能直接送到末端站点或企业收货地点。',
   destsort:'目的地分拨中心将进入目标区域的货物按末端站点、配送片区或具体路线再次分拣。作业通常包括到件扫描、路由归集、建包或装车，为末端配送准备可执行的批次。',
   station:'营业部、配送站或自提站接收目的地区域的货物，完成到站核对、分件、暂存及向配送人员交接。这里是配送资源开始接手货物的地点；直送场景可能没有独立站点。',
-  delivery:'配送人员或接收设施接货后，按路线派送、预约交付或通知自提。妥投通常以收件人、企业收货方或约定设备的接收信息为依据；未妥投、拒收、地址异常等会引发重派、改约或转入逆向流程。',
-  close:'正向链路的作业完成后，平台、商家和物流服务方可能进行运费计费、对账、结算和异常处理。签收完成不代表财务与服务关系立即结束；售后、索赔或退回可以在此后另行发起。',
+  delivery:'配送人员或接收设施接货后，按路线派送、预约交付或通知自提。交付完成以约定收货方式和承运方记录为依据；未妥投、拒收、地址异常等会引发重派、改约或转入逆向流程。',
+  close:'交付结果回传后，相关方可能按约定进行运费计费、对账、结算和异常处理。签收完成不代表财务与服务关系立即结束；售后、索赔或退回可以在此后另行发起。',
   'r-request':'逆向链路从退货、返修、回收、召回或拒收等需求开始。申请方说明原因、物品及原订单信息，受理方判断是否符合规则，并确定返回目标地点及服务方式。逆向委托受理后，实物仍可能留在申请方手中。',
   'r-book':'受理之后，双方确定上门取件、门店交件或自行寄回等方式，并约定地址、时间窗口和标签。预约只是对逆向运输的准备；承运方实际收到货物时才进入揽收和运输。',
-  'r-pick':'退回货物从申请方转交给承运方。取件或交件现场通常会核对件数、外包装、标签并扫描接收。对退货商品的质量结论一般应由后续接收或检测作业给出，揽收本身不等于退货审核通过。',
+  'r-pick':'退回货物从申请方转交给承运方。取件或交件现场可按服务规则核对件数、包装和标签，并扫描接收。对退货商品的质量结论一般应由后续接收或检测作业给出，揽收本身不等于退货审核通过。',
   'r-receive':'承运方在指定地点交付后，目的地收货方核对到货、数量和可见状态，并登记差异。运输交付记录与仓库收货确认是两个不同的事件；退款、换货或维修仍需后续业务处理。',
-  'r-inspect':'接收方依据逆向目的进行检验、分类和评估。例如退货可核对商品状态，返修可诊断故障，回收可分级估值。检验结果决定后续是重新入库、维修、换货、二次销售、回收利用或报废。',
-  'r-close':'逆向实物完成处置后，相关方处理退款、换货、维修反馈、补货或费用结算，并同步订单与售后状态。闭环既包括实物去向，也包括资金和信息的结束状态。'
+  'r-inspect':'接收方依据逆向目的进行检验、分类和评估。例如退货可核对商品状态，返修可诊断故障，回收可依据约定标准分类。检查结果可用于决定重新入库、维修、换货或其他约定处置。',
+  'r-close':'逆向实物完成处置后，相关方处理退款、换货、维修反馈、补货或费用结算，并同步订单与售后状态。是否涉及资金结算及处置方式，取决于交易和服务规则。'
 };
 function renderFlow(){
   const list=currentStages();
@@ -395,11 +407,13 @@ function layoutFlow(){
   flow.style.setProperty('--step-size',Math.min(23,Math.max(12,width*.055))+'px');
   flow.style.setProperty('--step-height',Math.min(58,Math.max(27,cardHeight*.064))+'px');
   flow.style.width=Math.max(viewport,n*width+(n-1)*gap)+'px';
+  updateFlowNav();
 }
 function updateFlowNav(){
   const box=$('flowScroll'),max=Math.max(0,box.scrollWidth-box.clientWidth);
   const canLeft=box.scrollLeft>4,canRight=max-box.scrollLeft>4;
   $('prevNode').hidden=!canLeft;$('nextNode').hidden=!canRight;
+  const slider=$('flowRange');slider.disabled=max<5;slider.value=max?String(Math.round(box.scrollLeft/max*1000)):'0';slider.style.setProperty('--range-progress',slider.value/10+'%');
 }
 function centerCard(id,behavior='smooth'){
   const box=$('flowScroll'),card=[...$('flow').querySelectorAll('.flow-card')].find(x=>x.dataset.node===id);
@@ -456,8 +470,15 @@ document.addEventListener('click',e=>{activate(e.target.closest?.('[data-scene],
 document.addEventListener('keydown',e=>{const card=e.target.closest?.('[data-node]');if(card&&(e.key==='Enter'||e.key===' ')){e.preventDefault();setFocus(card.dataset.node)}});
 $('prevNode').addEventListener('click',()=>stepNode(-1));$('nextNode').addEventListener('click',()=>stepNode(1));
 $('flowScroll').addEventListener('scroll',updateFlowNav,{passive:true});
+$('flowRange').addEventListener('input',e=>{const box=$('flowScroll'),max=Math.max(0,box.scrollWidth-box.clientWidth);box.scrollTo({left:max*Number(e.target.value)/1000,behavior:'instant'});updateFlowNav()});
 new ResizeObserver(()=>{layoutFlow();updateFlowNav()}).observe($('flowScroll'));
-let previousFocus=null;function openModal(kind){previousFocus=document.activeElement;if(kind==='refs'){$('modalTitle').textContent='参考文档';$('modalBody').innerHTML='<p>本图将 GS1 退货交接与运输、UPU 网络收寄分拣作业以及承运商异常处理规则组合成行业示意。返运路径是可能的组织方式，网点、分拣和中转不代表每票必经。不同企业、服务产品和运输网络可增减实际节点。</p>'+SOURCES.map(([name,desc,url])=>`<div class="reference"><strong><a href="${url}" target="_blank" rel="noopener noreferrer">${ESC(name)} ↗</a></strong><span>${ESC(desc)}</span></div>`).join('')}else{$('modalTitle').textContent='读图说明';$('modalBody').innerHTML='<p>左侧选择 C2C、C2B、B2C、B2B 业务场景；进入 C2B 场景后，会在其下方显示“退货单”开关；打开时展示回流链路，关闭时回到常规交付。主图上方选择常规交付或异常分支；选择“运输中拦截退回”后，其右侧会展开“拦截未成功”。B2B 以及返运分支可在当前业务场景卡片内选择直达或网络路径。</p><p>主图按时间从左到右展示路径；绿色卡片和回转箭头提示实物回流。拦截仅为申请，执行结果取决于货物状态与服务规则。网络返运的网点、分拣和中转是可选的典型作业，不代表所有货物必经。</p><p>每张卡片内按时间顺序列出作业；点击卡片后更新下方详情。可用两侧按钮或键盘左右箭头逐节点浏览。</p><p>本图将同一地点连续作业合并：业务订单与物流委托、站点与配送交接、末端交付与签收。物流委托生成与实物揽收仍是不同节点。</p>'}$('modalLayer').classList.add('open');$('modalLayer').setAttribute('aria-hidden','false');$('closeModal').focus()}
+const GUIDE_HTML=`
+<section class="guide-section"><h3>这张图表达什么</h3><p>它把发货需求、交接、运输、交付与可能发生的退回放到同一张交互图中。C2C、C2B、B2C、B2B 按本次货物的发货方和收货方划分；平台代下单不会改变这两个角色。页面展示的是跨企业、跨服务产品的作业模型，不是一家承运商的固定操作规程。</p></section>
+<section class="guide-section"><h3>从哪里开始看</h3><ol><li><b>选择业务场景：</b>在左侧点击四种发收关系。C2B 的“退货单”开关只在进入 C2B 后显示；打开后看个人向企业退货的申请、回寄、收货与处置，关闭后看普通寄件。</li><li><b>选择流程情境：</b>主图上方点击常规交付或一个异常结果。运输中拦截退回选中后，可再切到“拦截未成功”。这些情境是不同路径，不表示同一票货物会依次经历全部异常。</li><li><b>选择运输组织：</b>B2B 可看直达或网络；需要返运时可看直达返运或网点／分拣网络。网络路径只示范一种可能的组织方式。</li><li><b>浏览卡片：</b>从左向右阅读。右上角滑块可连续移动流程，卡片两侧箭头或键盘左右箭头可逐步移动。点击卡片才会更新下方的定义、流程和来源。</li></ol></section>
+<section class="guide-section"><h3>卡片和边界怎么理解</h3><p>每张卡片归纳一组相邻作业；首张卡片中的业务订单、平台受理和物流委托也可能跨主体、异地完成，合并展示不表示它们必定同址同刻。卡片中的小步骤是该环节可能涉及的作业顺序；“按需”“可选”“按规则”意味着具体服务可能省略。下方说明解释该节点的定义、作业边界和资料依据。</p><p class="guide-note"><b>三个容易混淆的时间点：</b>提交寄件信息或生成运单，只表示需求和物流委托已建立；货物被承运方实际揽收，才进入其运输网络；承运方交付与收货方入库、质检、退款是不同事件，时间可能不一致。</p></section>
+<section class="guide-section"><h3>如何读异常和返运</h3><p>取消发生在承运方尚未接货时，不产生实物返运。拦截是交付前的申请，只有承运方完成操作后，后续线路才会改变；若拦截未成功，应继续以真实运输状态为准。未妥投、拒收和超期未取是不同的交付结果。只有需要把货物送回指定地点时，才进入返运运输和退回收货环节。</p></section>
+<section class="guide-section"><h3>资料与适用范围</h3><p>GS1 支持跨主体交接、运输与退货收货的事件划分；UPU 提供收寄、分拣、发运的网络作业示例；ASCM SCOR 提供履约和退回的流程框架；UPS、FedEx、USPS 的公开规则用于解释具体异常选项。中文节点标题和多来源组合是本图的归纳，不是这些机构联合发布的统一行业流程。网点、枢纽、分拨、中转、再次派送、退款和检查均取决于服务与实际事件。每张卡片下方列出其参考链接，完整目录见右上角“参考资料”。</p></section>`;
+let previousFocus=null;function openModal(kind){previousFocus=document.activeElement;if(kind==='refs'){$('modalTitle').textContent='参考文档';$('modalBody').innerHTML='<p>本图将 GS1 退货交接与运输、UPU 网络收寄分拣作业以及承运商异常处理规则组合成行业示意。返运路径是可能的组织方式，网点、分拣和中转不代表每票必经。不同企业、服务产品和运输网络可增减实际节点。</p>'+SOURCES.map(([name,desc,url])=>`<div class="reference"><strong><a href="${url}" target="_blank" rel="noopener noreferrer">${ESC(name)} ↗</a></strong><span>${ESC(desc)}</span></div>`).join('')}else{$('modalTitle').textContent='读图说明';$('modalBody').innerHTML=GUIDE_HTML}$('modalLayer').classList.add('open');$('modalLayer').setAttribute('aria-hidden','false');$('closeModal').focus()}
 function closeModal(){$('modalLayer').classList.remove('open');$('modalLayer').setAttribute('aria-hidden','true');previousFocus?.focus()}
 $('guideBtn').onclick=()=>openModal('guide');$('refsBtn').onclick=()=>openModal('refs');$('closeModal').onclick=closeModal;$('modalLayer').addEventListener('click',e=>{if(e.target===$('modalLayer'))closeModal()});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('modalLayer').classList.contains('open')){closeModal();return}if($('modalLayer').classList.contains('open')||e.target.matches('input,textarea,select,[contenteditable="true"]'))return;if(e.key==='ArrowRight'||e.key==='ArrowLeft'){e.preventDefault();stepNode(e.key==='ArrowRight'?1:-1)}});render();
 </script>
