@@ -167,6 +167,7 @@
     .card-head{box-sizing:border-box;overflow:hidden}
     .card-head img{flex:none}
     .card-title{width:100%;flex:none}
+    .flow.short-flow{justify-content:center}
   </style>
 </head>
 <body>
@@ -175,8 +176,8 @@
   <main class="main">
     <aside class="sidebar" aria-label="业务场景与返运组织">
       <div class="rail-heading">业务场景</div>
-      <div class="scene-group"><div class="group-title">个人发起</div><button type="button" class="scene active" data-scene="c2c" aria-pressed="true"><strong>C2C　个人 → 个人</strong><span class="scene-desc">个人寄件，上门揽收或自行交件，交付另一位个人。</span></button><button type="button" class="scene" data-scene="c2b" aria-pressed="false"><strong>C2B　个人 → 企业</strong><span class="scene-desc">个人向企业寄件，可用于退货、返修、回收或送检。</span></button><div class="return-block" id="returnBlock"><button type="button" class="return-toggle" id="returnToggle" data-return-toggle role="switch" aria-checked="false" aria-label="主动退回"><span>主动退回</span><span class="toggle-track" aria-hidden="true"></span></button></div></div>
-      <div class="scene-group"><div class="group-title">企业发起</div><button type="button" class="scene" data-scene="b2c" aria-pressed="false"><strong>B2C　企业 → 个人</strong><span class="scene-desc">商家或仓库备货，通过仓配或承运商送到消费者。</span></button><button type="button" class="scene" data-scene="b2b" aria-pressed="false"><strong>B2B　企业 → 企业</strong><span class="scene-desc">采购、调拨与销售发货，可走整车直达或零担网络。</span></button></div>
+      <div class="scene-group"><div class="group-title">个人发起</div><button type="button" class="scene active" data-scene="c2c" aria-pressed="true"><strong>C2C　个人 → 个人</strong><span class="scene-desc">个人寄件，上门揽收或自行交件，交付另一位个人。</span></button><button type="button" class="scene" data-scene="c2b" aria-pressed="false"><strong>C2B　个人 → 企业</strong><span class="scene-desc">个人向企业寄件，可用于退货、返修、回收或送检。</span></button><div class="return-block" id="returnBlock"><button type="button" class="return-toggle" id="returnToggle" data-return-toggle role="switch" aria-checked="false" aria-label="退货单"><span>退货单</span><span class="toggle-track" aria-hidden="true"></span></button></div></div>
+      <div class="scene-group" id="enterpriseGroup"><div class="group-title">企业发起</div><button type="button" class="scene" data-scene="b2c" aria-pressed="false"><strong>B2C　企业 → 个人</strong><span class="scene-desc">商家或仓库备货，通过仓配或承运商送到消费者。</span></button><button type="button" class="scene" data-scene="b2b" aria-pressed="false"><strong>B2B　企业 → 企业</strong><span class="scene-desc">采购、调拨与销售发货，可走整车直达或零担网络。</span></button></div>
       <div class="route-block" id="routeBlock"><span id="routeTitle">运输组织（示例）</span><button type="button" class="route" data-route="direct" aria-pressed="false">直达运输</button><button type="button" class="route active" data-route="network" aria-pressed="true">网点／分拣网络</button></div>
       <div class="rail-note">同一地点、连续完成的作业合并展示。不同场景不经过的节点会从主图移除。</div>
     </aside>
@@ -213,16 +214,16 @@ const FORWARD=[
  {id:'close',title:'结算与售后闭环',icon:'settlement',caption:'订单数据与费用闭环',steps:['计费对账','结算／开票','投诉与理赔','状态归档'],detail:'费用结算、售后和异常处理可与实物流动部分并行。退货、返修、回收可再触发新的逆向链路。'}
 ];
 const REVERSE=[
- {id:'r-request',title:'逆向申请与受理',icon:'reverse',caption:'形成回流服务需求',steps:['提交原因和货物信息','审核规则与凭证','明确承担方和费用','生成逆向订单'],detail:'拒收、退货、返修、召回、回收等触发新的物流委托；原交易售后单与逆向运单应关联。',by:{c2c:['发起拒收／退回','确认原寄件人','确定退回费用','生成退回任务'],c2b:['提交返修／回收申请','企业审核与受理','确认回寄条件','生成逆向订单'],b2c:['消费者申请退货','商家／平台审核','确定退款与运费规则','生成退货单'],b2b:['企业退货／召回','核对合同与批次','明确责任与费用','生成返运委托']}},
+ {id:'r-request',title:'逆向申请与受理',icon:'reverse',caption:'形成回流服务需求',steps:['提交原因和货物信息','审核规则与凭证','明确承担方和费用','生成逆向订单'],detail:'拒收、退货、返修、召回、回收等触发新的物流委托；原交易售后单与逆向运单应关联。',by:{c2c:['发起拒收／退回','确认原寄件人','确定退回费用','生成退回任务'],c2b:['提交退货申请','企业审核与受理','确认回寄条件','生成退货单与回寄运单'],b2c:['消费者申请退货','商家／平台审核','确定退款与运费规则','生成退货单'],b2b:['企业退货／召回','核对合同与批次','明确责任与费用','生成返运委托']}},
  {id:'r-book',title:'回寄预约',icon:'calendar',caption:'确定取件方式与时间',steps:['确定取件地址','选择上门／自行交件','预约时间窗口','准备包装与标签'],detail:'取件预约与物流委托通常在线上完成；实物尚未进入逆向运输网络。'},
  {id:'r-pick',title:'逆向揽收',icon:'handover',caption:'退回货物交接',steps:['交件核验','称重／计量与扫描','记录货物状态','责任交接'],detail:'承运方实际取得退回货物，建立原订单、逆向运单与交接记录的对应关系。'},
- {id:'r-receive',title:'退回收货确认',icon:'warehouse',caption:'收货方核对实物',steps:['收货方接收实物','核对数量与状态','确认收货或登记差异'],detail:'GS1 将承运方的交付结果与目的地仓库的收货确认区分。目的地可以是原寄件人、商家仓、维修中心或回收仓；入库和检验依具体业务继续办理。',by:{c2c:['原寄件人接收','核对退回货物','确认或反馈差异'],c2b:['企业／回收点接收','核对回寄任务','确认或登记差异'],b2c:['商家仓接收','核对退货单','收货确认／差异登记'],b2b:['企业仓接收','核对批次与数量','确认或登记差异']}},
+ {id:'r-receive',title:'退回收货确认',icon:'warehouse',caption:'收货方核对实物',steps:['收货方接收实物','核对数量与状态','确认收货或登记差异'],detail:'GS1 将承运方的交付结果与目的地仓库的收货确认区分。目的地可以是原寄件人、商家仓、维修中心或回收仓；入库和检验依具体业务继续办理。',by:{c2c:['原寄件人接收','核对退回货物','确认或反馈差异'],c2b:['企业退货仓接收','核对退货单与货物','确认或登记差异'],b2c:['商家仓接收','核对退货单','收货确认／差异登记'],b2b:['企业仓接收','核对批次与数量','确认或登记差异']}},
  {id:'r-inspect',title:'检测与分类',icon:'inspect',caption:'确定货物后续去向',steps:['外观／功能检测','记录成色和损伤','分级分类','确定处置方案'],detail:'检测结果决定维修、换货、复售、再利用、再生或报废；个人退回原寄件人的货物可略过企业检测。'},
- {id:'r-close',title:'处置与结算',icon:'recycle',caption:'实物、资金和状态闭环',steps:['退款／换货／返还','复售／再生／报废','费用对账','状态归档'],detail:'实物处置、财务结算和售后状态回传完成后，逆向订单闭环。',by:{c2c:['原寄件人确认收货','退回费用结算','关闭退回任务'],c2b:['维修／回收／检测','返还或补偿','结算与归档'],b2c:['退款／换货','复售／维修／报废','对账与归档'],b2b:['换货／索赔／返修','库存与合同调整','对账与归档']}}
+ {id:'r-close',title:'处置与结算',icon:'recycle',caption:'实物、资金和状态闭环',steps:['退款／换货／返还','复售／再生／报废','费用对账','状态归档'],detail:'实物处置、财务结算和售后状态回传完成后，逆向订单闭环。',by:{c2c:['原寄件人确认收货','退回费用结算','关闭退回任务'],c2b:['退货验收与处置','退款或换货','结算与归档'],b2c:['退款／换货','复售／维修／报废','对账与归档'],b2b:['换货／索赔／返修','库存与合同调整','对账与归档']}}
 ];
 const BRANCHES={
   normal:{label:'常规交付',hint:'按选定业务场景展示常规正向链路；实际网络可增减中转与站点。'},
-  return:{label:'主动退回',hint:'退货、返修、回收等先形成退回需求，再由承运方接货、运输、交付指定处理地点。'},
+  return:{label:'退货单',hint:'个人向企业发起退货申请并形成退货单；受理后安排回寄、运输、收货与后续处置。'},
   cancel:{label:'揽收前取消',hint:'在实物交接前取消：受理并核查状态后关闭委托，无需回运。'},
   intercept:{label:'运输中拦截退回',hint:'以干线在途提出拦截为示例；请求需核验，执行成功后才进入退回运输。'},
   interceptFail:{label:'拦截未成功',hint:'拦截请求未能在交付前执行时，货物仍可能沿原路径继续配送；后续以实际状态为准。'},
@@ -284,7 +285,10 @@ function updateControls(){
   $('returnBlock').classList.toggle('visible',scene==='c2b');
   $('returnToggle').setAttribute('aria-checked',branch==='return');
   const returnPath=['return','intercept','refuse','unclaimed'].includes(branch);
-  $('routeBlock').classList.toggle('visible',returnPath||scene==='b2b');
+  const routeBlock=$('routeBlock'),enterpriseGroup=$('enterpriseGroup');
+  if(returnPath&&routeBlock.nextElementSibling!==enterpriseGroup)enterpriseGroup.before(routeBlock);
+  if(!returnPath&&routeBlock.previousElementSibling!==enterpriseGroup)enterpriseGroup.after(routeBlock);
+  routeBlock.classList.toggle('visible',returnPath||scene==='b2b');
   $('routeTitle').textContent=returnPath?'返运组织（示例）':'B2B 运输路径';
   document.querySelector('[data-route="direct"]').textContent=returnPath?'直达返运':'整车直达';
   document.querySelector('[data-route="network"]').textContent=returnPath?'网点／分拣网络':'零担网络';
@@ -338,6 +342,7 @@ function renderFlow(){
   if(!list.some(s=>s.id===focus))focus=list[0]?.id||'';
   $('flowTitle').textContent=(direction==='reverse'?'逆向订单 · ':'正向履约 · ')+SCENES[scene]+(scene==='b2b'&&direction==='forward'?' · '+(route==='direct'?'整车直达':'零担网络'):'')+(branch!=='normal'?' · '+BRANCHES[branch].label:'');
   $('flowCount').textContent=`${list.length} 个节点 · 按时间从左向右 ↔`;
+  $('flow').classList.toggle('short-flow',branch==='cancel');
   $('flow').innerHTML=list.map((s,i)=>`<article class="flow-card ${focus===s.id?'active':''} ${direction==='reverse'?'reverse':''} ${s.branchType||''}" data-node="${s.id}" tabindex="0" role="button" aria-pressed="${focus===s.id}" aria-label="点击查看${ESC(s.title)}详情"><div class="card-head"><img src="assets/icons-3d/${s.icon}.png" width="88" height="88" loading="lazy" decoding="async" alt=""><div class="card-title"><h3>${ESC(s.title)}</h3><p>${ESC(s.caption)}</p></div></div><div class="card-number">${String(i+1).padStart(2,'0')} / ${String(list.length).padStart(2,'0')}</div><ol class="mini-flow">${steps(s).map((v,j)=>`<li><span class="num">${j+1}</span><span class="step">${ESC(v)}</span></li>`).join('')}</ol></article>${i<list.length-1?`<span class="flow-connector ${list[i+1].branchType==='return'?'return-link':''}" aria-hidden="true"><span>${list[i+1].branchType==='return'?'↶':'›'}</span></span>`:''}`).join('');
   layoutFlow();updateFlowNav();
 }
@@ -346,10 +351,11 @@ function layoutFlow(){
   if(!viewport||!n)return;
   const baseGap=Math.max(30,Math.min(60,viewport*.018));
   let width,gap;
-  if(n<=8){width=Math.min(550,Math.max(190,(viewport-baseGap*(n-1))/n));gap=Math.max(baseGap,(viewport-width*n)/Math.max(1,n-1))}
+  if(branch==='cancel'){width=Math.min(550,Math.max(190,(viewport-baseGap*5)/6));gap=baseGap}
+  else if(n<=8){width=Math.min(550,Math.max(190,(viewport-baseGap*(n-1))/n));gap=Math.max(baseGap,(viewport-width*n)/Math.max(1,n-1))}
   else{width=Math.min(365,Math.max(178,(viewport-baseGap*9)/10));gap=Math.max(baseGap,(viewport-width*n)/Math.max(1,n-1))}
   const cardHeight=Math.min(900,Math.max(265,box.clientHeight-12));
-  const headHeight=Math.min(360,Math.max(120,cardHeight*(n<=3?.44:.36)));
+  const headHeight=Math.min(360,Math.max(120,cardHeight*(n<=3&&branch!=='cancel'?.44:.36)));
   const titleSize=Math.min(27,Math.max(13,width*.048));
   const captionSize=Math.min(18,Math.max(10,width*.033));
   const iconSize=Math.max(44,Math.min(190,headHeight*.55,headHeight-titleSize*2.5-captionSize*1.5-22));
@@ -422,7 +428,7 @@ document.addEventListener('keydown',e=>{const card=e.target.closest?.('[data-nod
 $('prevNode').addEventListener('click',()=>stepNode(-1));$('nextNode').addEventListener('click',()=>stepNode(1));
 $('flowScroll').addEventListener('scroll',updateFlowNav,{passive:true});
 new ResizeObserver(()=>{layoutFlow();updateFlowNav()}).observe($('flowScroll'));
-let previousFocus=null;function openModal(kind){previousFocus=document.activeElement;if(kind==='refs'){$('modalTitle').textContent='参考文档';$('modalBody').innerHTML='<p>本图将 GS1 退货交接与运输、UPU 网络收寄分拣作业以及承运商异常处理规则组合成行业示意。返运路径是可能的组织方式，网点、分拣和中转不代表每票必经。不同企业、服务产品和运输网络可增减实际节点。</p>'+SOURCES.map(([name,desc,url])=>`<div class="reference"><strong><a href="${url}" target="_blank" rel="noopener noreferrer">${ESC(name)} ↗</a></strong><span>${ESC(desc)}</span></div>`).join('')}else{$('modalTitle').textContent='读图说明';$('modalBody').innerHTML='<p>左侧选择 C2C、C2B、B2C、B2B 业务场景；进入 C2B 场景后，会在其下方显示“主动退回”开关；打开时展示回流链路，关闭时回到常规交付。主图上方选择常规交付或异常分支；B2B 以及返运分支还可以选择直达或网络路径。</p><p>主图按时间从左到右展示路径；绿色卡片和回转箭头提示实物回流。拦截仅为申请，执行结果取决于货物状态与服务规则。网络返运的网点、分拣和中转是可选的典型作业，不代表所有货物必经。</p><p>每张卡片内按时间顺序列出作业；点击卡片后更新下方详情。可用两侧按钮或键盘左右箭头逐节点浏览。</p><p>本图将同一地点连续作业合并：业务订单与物流委托、站点与配送交接、末端交付与签收。物流委托生成与实物揽收仍是不同节点。</p>'}$('modalLayer').classList.add('open');$('modalLayer').setAttribute('aria-hidden','false');$('closeModal').focus()}
+let previousFocus=null;function openModal(kind){previousFocus=document.activeElement;if(kind==='refs'){$('modalTitle').textContent='参考文档';$('modalBody').innerHTML='<p>本图将 GS1 退货交接与运输、UPU 网络收寄分拣作业以及承运商异常处理规则组合成行业示意。返运路径是可能的组织方式，网点、分拣和中转不代表每票必经。不同企业、服务产品和运输网络可增减实际节点。</p>'+SOURCES.map(([name,desc,url])=>`<div class="reference"><strong><a href="${url}" target="_blank" rel="noopener noreferrer">${ESC(name)} ↗</a></strong><span>${ESC(desc)}</span></div>`).join('')}else{$('modalTitle').textContent='读图说明';$('modalBody').innerHTML='<p>左侧选择 C2C、C2B、B2C、B2B 业务场景；进入 C2B 场景后，会在其下方显示“退货单”开关；打开时展示回流链路，关闭时回到常规交付。主图上方选择常规交付或异常分支；B2B 以及返运分支还可以选择直达或网络路径。</p><p>主图按时间从左到右展示路径；绿色卡片和回转箭头提示实物回流。拦截仅为申请，执行结果取决于货物状态与服务规则。网络返运的网点、分拣和中转是可选的典型作业，不代表所有货物必经。</p><p>每张卡片内按时间顺序列出作业；点击卡片后更新下方详情。可用两侧按钮或键盘左右箭头逐节点浏览。</p><p>本图将同一地点连续作业合并：业务订单与物流委托、站点与配送交接、末端交付与签收。物流委托生成与实物揽收仍是不同节点。</p>'}$('modalLayer').classList.add('open');$('modalLayer').setAttribute('aria-hidden','false');$('closeModal').focus()}
 function closeModal(){$('modalLayer').classList.remove('open');$('modalLayer').setAttribute('aria-hidden','true');previousFocus?.focus()}
 $('guideBtn').onclick=()=>openModal('guide');$('refsBtn').onclick=()=>openModal('refs');$('closeModal').onclick=closeModal;$('modalLayer').addEventListener('click',e=>{if(e.target===$('modalLayer'))closeModal()});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('modalLayer').classList.contains('open')){closeModal();return}if($('modalLayer').classList.contains('open')||e.target.matches('input,textarea,select,[contenteditable="true"]'))return;if(e.key==='ArrowRight'||e.key==='ArrowLeft'){e.preventDefault();stepNode(e.key==='ArrowRight'?1:-1)}});render();
 </script>
