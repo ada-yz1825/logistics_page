@@ -125,6 +125,21 @@
     @media(min-width:1900px){.topbar{height:clamp(66px,4.5vh,94px)}.brand h1{font-size:clamp(24px,1vw,36px)}.brand p{font-size:clamp(14px,.6vw,19px)}.sidebar{padding:clamp(15px,.85vw,26px);gap:clamp(10px,.6vw,18px)}.rail-heading,.group-title{font-size:clamp(14px,.65vw,19px)}.scene strong,.direction-switch button,.route{font-size:clamp(15px,.7vw,21px)}.scene-desc,.switch-hint,.rail-note{font-size:clamp(12px,.56vw,17px)}}
     @media(max-width:900px){.main{grid-template-columns:190px minmax(0,1fr)}.detail{height:240px;grid-template-columns:130px 1fr}.detail-image img{width:120px;height:120px}.detail-grid{grid-template-columns:1fr}.detail-box:nth-child(2){display:none}}
     @media(max-width:680px){.main{grid-template-columns:117px minmax(0,1fr)}.chart-inner{padding:6px;gap:3px}.flow-nav{height:43px;gap:5px}.flow-nav button{width:30px;height:30px;font-size:23px;border-radius:8px}.flow-nav input{height:36px}.flow-nav input::-webkit-slider-runnable-track{height:9px}.flow-nav input::-webkit-slider-thumb{height:25px;width:25px;margin-top:-8px;border-width:4px}.flow-nav output{min-width:55px;padding:6px 3px;font-size:10px}.detail{height:205px;grid-template-columns:90px 1fr}.detail-body{padding:7px;gap:4px}.detail-head h2{font-size:13px}.detail-head span,.detail-head em{font-size:9px}.detail-box{padding:5px}.detail-box b,.detail-box p,.detail-process li{font-size:9px}.detail-process{grid-template-columns:repeat(2,minmax(0,1fr));gap:3px}.detail-process li{padding:4px}.detail-source{font-size:8px}}
+    /* Navigation floats beside the cards; the bottom edge stays clear. */
+    .chart-inner{position:relative}
+    .flow-nav{position:absolute;inset:0;height:auto;padding:0;border:0;pointer-events:none;z-index:5;display:block}
+    .flow-nav button{position:absolute;top:52%;width:clamp(43px,2.7vw,88px);height:clamp(58px,4.4vw,130px);border-radius:0 18px 18px 0;background:#eaf8fbdd;backdrop-filter:blur(9px);font-size:clamp(34px,2.2vw,70px);pointer-events:auto;transform:translateY(-50%);box-shadow:0 5px 22px #1f5d7140}
+    .flow-nav button:hover:not(:disabled){transform:translateY(-50%) scale(1.05)}
+    .flow-nav button[hidden]{display:none}
+    #prevNode{left:0;border-left:0}
+    #nextNode{right:0;border-right:0;border-radius:18px 0 0 18px}
+    .flow-edge{position:absolute;top:clamp(55px,3vw,84px);bottom:clamp(10px,.75vw,22px);width:clamp(28px,3.5vw,120px);z-index:3;pointer-events:none;backdrop-filter:blur(4px);opacity:0;transition:opacity .25s}
+    .flow-edge.visible{opacity:1}
+    .flow-edge-left{left:0;background:linear-gradient(90deg,#f8fcffbd,transparent);mask-image:linear-gradient(90deg,#000,transparent)}
+    .flow-edge-right{right:0;background:linear-gradient(270deg,#f4fbfdba,transparent);mask-image:linear-gradient(270deg,#000,transparent)}
+    .flow-card{box-shadow:0 7px 19px #164a6726}
+    .detail{height:clamp(245px,30vh,650px)}
+    @media(max-width:680px){.flow-nav{height:auto}.flow-nav button{width:32px;height:54px;font-size:29px;border-radius:0 10px 10px 0}.flow-nav button:hover:not(:disabled){transform:translateY(-50%)}#nextNode{border-radius:10px 0 0 10px}.flow-edge{top:42px;bottom:5px;width:26px}}
   </style>
 </head>
 <body>
@@ -140,7 +155,7 @@
       <div class="route-block" id="routeBlock"><span>B2B 运输路径</span><button type="button" class="route active" data-route="direct" aria-pressed="true">整车直达</button><button type="button" class="route" data-route="network" aria-pressed="false">零担网络</button></div>
       <div class="rail-note">同一地点、连续完成的作业合并展示。不同场景不经过的节点会从主图移除。</div>
     </aside>
-    <div class="surface"><section class="chart" id="chart" aria-label="物流全链路流程图"><div class="chart-inner"><div class="chart-heading"><strong id="flowTitle"></strong><small id="flowCount"></small></div><div class="flow-scroll" id="flowScroll"><div class="flow" id="flow"></div></div><div class="flow-nav" aria-label="流程节点导航"><button type="button" id="prevNode" aria-label="上一个节点">‹</button><input id="flowRange" type="range" min="0" max="12" value="0" aria-label="选择流程节点"><button type="button" id="nextNode" aria-label="下一个节点">›</button><output id="flowPosition" for="flowRange">01 / 13</output></div></div></section><section class="detail" id="detail" aria-live="polite"></section></div>
+    <div class="surface"><section class="chart" id="chart" aria-label="物流全链路流程图"><div class="chart-inner"><div class="chart-heading"><strong id="flowTitle"></strong><small id="flowCount"></small></div><div class="flow-scroll" id="flowScroll"><div class="flow" id="flow"></div></div><span class="flow-edge flow-edge-left" id="edgeLeft" aria-hidden="true"></span><span class="flow-edge flow-edge-right" id="edgeRight" aria-hidden="true"></span><div class="flow-nav" aria-label="流程节点导航"><button type="button" id="prevNode" aria-label="上一个节点">‹</button><button type="button" id="nextNode" aria-label="下一个节点">›</button></div></div></section><section class="detail" id="detail" aria-live="polite"></section></div>
   </main>
   <footer class="sourcebar"><span>参考：</span><a href="https://ref.gs1.org/standards/logistics-interoperability/1.1.1/" target="_blank" rel="noopener noreferrer">GS1 LIM</a><span>·</span><a href="https://scor.ascm.org/" target="_blank" rel="noopener noreferrer">ASCM SCOR</a><span>·</span><a href="https://cscmp.org/CSCMP/Educate/SCM_Definitions_and_Glossary_of_Terms.aspx" target="_blank" rel="noopener noreferrer">CSCMP</a><button type="button" id="refsFoot">全部参考文档 ↗</button></footer>
 </div>
@@ -223,33 +238,32 @@ function renderFlow(){
   const list=currentStages();
   if(!list.some(s=>s.id===focus))focus=list[0]?.id||'';
   $('flowTitle').textContent=(direction==='reverse'?'逆向订单 · ':'正向履约 · ')+SCENES[scene]+(scene==='b2b'&&direction==='forward'?' · '+(route==='direct'?'整车直达':'零担网络'):'');
-  $('flowCount').textContent=`${list.length} 个节点 · 从左向右`;
+  $('flowCount').textContent=`${list.length} 个节点 · 从左向右 ↔`;
   $('flow').innerHTML=list.map((s,i)=>`<article class="flow-card ${focus===s.id?'active':''} ${direction==='reverse'?'reverse':''}" data-node="${s.id}" tabindex="0" aria-label="${ESC(s.title)}"><div class="card-head"><img src="assets/icons-3d/${s.icon}.png" width="88" height="88" loading="lazy" decoding="async" alt=""><div class="card-title"><h3>${ESC(s.title)}</h3><p>${ESC(s.caption)}</p></div></div><div class="card-number">${String(i+1).padStart(2,'0')} / ${String(list.length).padStart(2,'0')}</div><ol class="mini-flow">${steps(s).map((v,j)=>`<li><span class="num">${j+1}</span><span class="step">${ESC(v)}</span></li>`).join('')}</ol></article>${i<list.length-1?'<span class="flow-connector" aria-hidden="true"><span>›</span></span>':''}`).join('');
   layoutFlow();updateFlowNav();
 }
 function layoutFlow(){
   const box=$('flowScroll'),flow=$('flow'),list=currentStages(),n=list.length,viewport=box.clientWidth;
   if(!viewport||!n)return;
-  const baseGap=Math.max(28,Math.min(48,viewport*.017));
+  const baseGap=Math.max(30,Math.min(60,viewport*.018));
   let width,gap;
-  if(n<=8){width=Math.min(440,Math.max(185,(viewport-baseGap*(n-1))/n));gap=Math.max(baseGap,(viewport-width*n)/Math.max(1,n-1))}
-  else{width=Math.min(345,Math.max(190,viewport/8.8));gap=baseGap}
-  const cardHeight=Math.min(720,Math.max(265,box.clientHeight-12));
-  const headHeight=Math.min(260,Math.max(106,cardHeight*.37));
+  if(n<=8){width=Math.min(550,Math.max(190,(viewport-baseGap*(n-1))/n));gap=Math.max(baseGap,(viewport-width*n)/Math.max(1,n-1))}
+  else{width=Math.min(480,Math.max(205,viewport/7.2));gap=baseGap}
+  const cardHeight=Math.min(900,Math.max(265,box.clientHeight-12));
+  const headHeight=Math.min(310,Math.max(106,cardHeight*.36));
   flow.style.setProperty('--card-w',width+'px');flow.style.setProperty('--node-gap',gap+'px');flow.style.setProperty('--card-h',cardHeight+'px');flow.style.setProperty('--head-h',headHeight+'px');
-  flow.style.setProperty('--icon-size',Math.min(158,Math.max(67,width*.38,headHeight*.55))+'px');
-  flow.style.setProperty('--title-size',Math.min(22,Math.max(12,width*.058))+'px');
-  flow.style.setProperty('--caption-size',Math.min(16,Math.max(9,width*.039))+'px');
-  flow.style.setProperty('--step-size',Math.min(18,Math.max(10,width*.048))+'px');
-  flow.style.setProperty('--step-height',Math.min(38,Math.max(23,cardHeight*.049))+'px');
+  flow.style.setProperty('--icon-size',Math.min(205,Math.max(70,width*.4,headHeight*.57))+'px');
+  flow.style.setProperty('--title-size',Math.min(31,Math.max(13,width*.065))+'px');
+  flow.style.setProperty('--caption-size',Math.min(21,Math.max(10,width*.045))+'px');
+  flow.style.setProperty('--step-size',Math.min(24,Math.max(11,width*.054))+'px');
+  flow.style.setProperty('--step-height',Math.min(51,Math.max(24,cardHeight*.06))+'px');
   flow.style.width=Math.max(viewport,n*width+(n-1)*gap)+'px';
 }
 function updateFlowNav(){
-  const list=currentStages(),i=Math.max(0,list.findIndex(s=>s.id===focus)),range=$('flowRange');
-  range.max=String(Math.max(0,list.length-1));range.value=String(i);
-  range.style.setProperty('--range-progress',list.length>1?`${i/(list.length-1)*100}%`:'0%');
-  $('flowPosition').textContent=`${String(i+1).padStart(2,'0')} / ${String(list.length).padStart(2,'0')}`;
-  $('prevNode').disabled=i<=0;$('nextNode').disabled=i>=list.length-1;
+  const box=$('flowScroll'),max=Math.max(0,box.scrollWidth-box.clientWidth);
+  const canLeft=box.scrollLeft>4,canRight=max-box.scrollLeft>4;
+  $('prevNode').hidden=!canLeft;$('nextNode').hidden=!canRight;
+  $('edgeLeft').classList.toggle('visible',canLeft);$('edgeRight').classList.toggle('visible',canRight);
 }
 function centerCard(id,behavior='smooth'){
   const box=$('flowScroll'),card=[...$('flow').querySelectorAll('.flow-card')].find(x=>x.dataset.node===id);
@@ -257,6 +271,7 @@ function centerCard(id,behavior='smooth'){
   const br=box.getBoundingClientRect(),cr=card.getBoundingClientRect();
   const target=Math.max(0,Math.min(box.scrollWidth-box.clientWidth,box.scrollLeft+cr.left-br.left-(box.clientWidth-cr.width)/2));
   if(Math.abs(target-box.scrollLeft)>3)box.scrollTo({left:target,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':behavior});
+  requestAnimationFrame(updateFlowNav);
 }
 function renderDetail(){
   const s=currentStages().find(x=>x.id===focus)||currentStages()[0];if(!s)return;
@@ -270,7 +285,7 @@ function render(){updateControls();renderFlow();renderDetail()}
 function transitionTo(mutate,resetScroll=false){
   const box=$('flowScroll'),oldEls=[...document.querySelectorAll('#flow .flow-card')],oldRects=new Map(oldEls.map(el=>[el.dataset.node,el.getBoundingClientRect()])),oldSteps=new Map(oldEls.map(el=>[el.dataset.node,[...el.querySelectorAll('.mini-flow .step')].map(x=>x.textContent).join('|')])),viewport=box.getBoundingClientRect(),reduced=matchMedia('(prefers-reduced-motion: reduce)').matches,ghosts=[];
   if(!reduced)oldEls.forEach(el=>{const r=el.getBoundingClientRect();if(r.right<viewport.left||r.left>viewport.right)return;const ghost=el.cloneNode(true);Object.assign(ghost.style,{position:'fixed',left:r.left+'px',top:r.top+'px',width:r.width+'px',height:r.height+'px',margin:'0',pointerEvents:'none',zIndex:'30'});document.body.appendChild(ghost);ghosts.push([el.dataset.node,ghost])});
-  mutate();render();if(resetScroll)box.scrollLeft=0;if(reduced)return;
+  mutate();render();if(resetScroll)box.scrollLeft=0;updateFlowNav();if(reduced)return;
   const newIds=new Set([...document.querySelectorAll('#flow .flow-card')].map(el=>el.dataset.node));
   document.querySelectorAll('#flow .flow-card').forEach(el=>{const now=el.getBoundingClientRect(),before=oldRects.get(el.dataset.node);el.animate([{transform:`translate(${before?before.left-now.left:-34}px,${before?before.top-now.top:0}px)`,opacity:before?1:0},{transform:'translate(0,0)',opacity:1}],{duration:540,easing:'cubic-bezier(.2,.75,.2,1)'});const newSteps=[...el.querySelectorAll('.mini-flow .step')].map(x=>x.textContent).join('|');if(before&&oldSteps.get(el.dataset.node)!==newSteps){[...el.querySelectorAll('.mini-flow li')].forEach((item,i)=>item.animate([{opacity:0,transform:'translateY(13px) scale(.96)',filter:'blur(3px)'},{opacity:1,transform:'translateY(0) scale(1)',filter:'blur(0)'}],{duration:350,delay:90+i*55,easing:'ease-out',fill:'backwards'}))}});
   ghosts.forEach(([id,el])=>{if(newIds.has(id)){el.remove();return}const a=el.animate([{opacity:.9,transform:'scale(1)'},{opacity:0,transform:'scale(.82) translateX(-24px)'}],{duration:360,easing:'ease-out'});a.onfinish=()=>el.remove();setTimeout(()=>el.remove(),500)});
@@ -283,8 +298,8 @@ document.addEventListener('pointerover',e=>{if(e.pointerType!=='mouse')return;co
 document.addEventListener('click',e=>{activate(e.target.closest?.('[data-scene],[data-route],[data-direction]'));const card=e.target.closest?.('[data-node]');if(card)setFocus(card.dataset.node,true)});
 document.addEventListener('focusin',e=>{const card=e.target.closest?.('[data-node]');if(card)setFocus(card.dataset.node,true)});
 $('prevNode').addEventListener('click',()=>stepNode(-1));$('nextNode').addEventListener('click',()=>stepNode(1));
-$('flowRange').addEventListener('input',e=>{const s=currentStages()[Number(e.target.value)];if(s)setFocus(s.id,true)});
-new ResizeObserver(()=>{layoutFlow();centerCard(focus,'instant')}).observe($('flowScroll'));
+$('flowScroll').addEventListener('scroll',updateFlowNav,{passive:true});
+new ResizeObserver(()=>{layoutFlow();updateFlowNav()}).observe($('flowScroll'));
 let previousFocus=null;function openModal(kind){previousFocus=document.activeElement;if(kind==='refs'){$('modalTitle').textContent='参考文档';$('modalBody').innerHTML='<p>本图综合行业流程资料形成通用模型。不同企业、服务产品和运输网络可增减实际节点。</p>'+SOURCES.map(([name,desc,url])=>`<div class="reference"><strong><a href="${url}" target="_blank" rel="noopener noreferrer">${ESC(name)} ↗</a></strong><span>${ESC(desc)}</span></div>`).join('')}else{$('modalTitle').textContent='读图说明';$('modalBody').innerHTML='<p>左侧先选正向或逆向，再选 C2C、C2B、B2C、B2B 场景。B2B 正向可在整车直达和零担网络间切换。</p><p>主图从左到右展示该路径实际经过的环节；不经过的节点直接移除。每张卡片内按时间顺序列出作业，卡片之间代表地点或责任方的变化。</p><p>本图将同一地点连续作业合并：业务订单与物流委托、站点与配送交接、末端交付与签收。物流委托生成与实物揽收仍是不同节点。</p>'}$('modalLayer').classList.add('open');$('modalLayer').setAttribute('aria-hidden','false');$('closeModal').focus()}
 function closeModal(){$('modalLayer').classList.remove('open');$('modalLayer').setAttribute('aria-hidden','true');previousFocus?.focus()}
 $('guideBtn').onclick=()=>openModal('guide');$('refsBtn').onclick=$('refsFoot').onclick=()=>openModal('refs');$('closeModal').onclick=closeModal;$('modalLayer').addEventListener('click',e=>{if(e.target===$('modalLayer'))closeModal()});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('modalLayer').classList.contains('open')){closeModal();return}if($('modalLayer').classList.contains('open')||e.target.matches('input,textarea,select,[contenteditable="true"]'))return;if(e.key==='ArrowRight'||e.key==='ArrowLeft'){e.preventDefault();stepNode(e.key==='ArrowRight'?1:-1)}});render();
