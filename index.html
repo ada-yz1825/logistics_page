@@ -154,6 +154,11 @@
     @media(max-width:680px){.brand-logo{width:33px;height:33px}.branch-bar{min-height:37px;gap:4px}.branch-caption{display:none}.branch-bar button{font-size:10px;padding:5px 7px}.branch-context{min-height:23px;font-size:9px}}
     .flow-card{cursor:pointer}
     .flow-card:hover:not(.active){border-color:#61b5bd;box-shadow:0 7px 20px #176f842d}
+    .return-scene{margin-left:clamp(10px,.65vw,20px);border-color:#b4d7c5;background:#f3faf5;color:#27684e}
+    .return-scene.active{background:#dff3e7;border-color:#55b888;box-shadow:inset 4px 0 #3aa872}
+    .card-head{box-sizing:border-box;overflow:hidden}
+    .card-head img{flex:none}
+    .card-title{width:100%;flex:none}
   </style>
 </head>
 <body>
@@ -162,12 +167,12 @@
   <main class="main">
     <aside class="sidebar" aria-label="业务场景与返运组织">
       <div class="rail-heading">业务场景</div>
-      <div class="scene-group"><div class="group-title">个人发起</div><button type="button" class="scene active" data-scene="c2c" aria-pressed="true"><strong>C2C　个人 → 个人</strong><span class="scene-desc">个人寄件，上门揽收或自行交件，交付另一位个人。</span></button><button type="button" class="scene" data-scene="c2b" aria-pressed="false"><strong>C2B　个人 → 企业</strong><span class="scene-desc">退货、返修、回收、送检等，企业接收并验收。</span></button></div>
+      <div class="scene-group"><div class="group-title">个人发起</div><button type="button" class="scene active" data-scene="c2c" aria-pressed="true"><strong>C2C　个人 → 个人</strong><span class="scene-desc">个人寄件，上门揽收或自行交件，交付另一位个人。</span></button><button type="button" class="scene" data-scene="c2b" aria-pressed="false"><strong>C2B　个人 → 企业</strong><span class="scene-desc">个人向企业寄件，可用于退货、返修、回收或送检。</span></button><button type="button" class="scene return-scene" data-branch="return" aria-pressed="false"><strong>↶ 主动退回</strong><span class="scene-desc">按当前业务场景展示退货、返修或回收链路。</span></button></div>
       <div class="scene-group"><div class="group-title">企业发起</div><button type="button" class="scene" data-scene="b2c" aria-pressed="false"><strong>B2C　企业 → 个人</strong><span class="scene-desc">商家或仓库备货，通过仓配或承运商送到消费者。</span></button><button type="button" class="scene" data-scene="b2b" aria-pressed="false"><strong>B2B　企业 → 企业</strong><span class="scene-desc">采购、调拨与销售发货，可走整车直达或零担网络。</span></button></div>
       <div class="route-block" id="routeBlock"><span id="routeTitle">运输组织（示例）</span><button type="button" class="route" data-route="direct" aria-pressed="false">直达运输</button><button type="button" class="route active" data-route="network" aria-pressed="true">网点／分拣网络</button></div>
       <div class="rail-note">同一地点、连续完成的作业合并展示。不同场景不经过的节点会从主图移除。</div>
     </aside>
-    <div class="surface"><section class="chart" id="chart" aria-label="物流全链路流程图"><div class="chart-inner"><div class="chart-heading"><strong id="flowTitle"></strong><small id="flowCount"></small></div><div class="branch-bar" id="branchBar" aria-label="流程分支"><span class="branch-caption">流程情境</span><button type="button" data-branch="normal" aria-pressed="true">常规交付</button><button type="button" data-branch="return" aria-pressed="false">主动退回</button><button type="button" data-branch="cancel" aria-pressed="false">揽收前取消</button><button type="button" data-branch="intercept" aria-pressed="false">运输中拦截退回</button><button type="button" data-branch="interceptFail" aria-pressed="false">拦截未成功</button><button type="button" data-branch="reroute" aria-pressed="false">拦截改址</button><button type="button" data-branch="failed" aria-pressed="false">未妥投再投</button><button type="button" data-branch="refuse" aria-pressed="false">拒收退回</button><button type="button" data-branch="pickupPoint" aria-pressed="false">转站点自提</button><button type="button" data-branch="unclaimed" aria-pressed="false">超期未取退回</button></div><div class="branch-context" id="branchContext" aria-live="polite"></div><div class="flow-scroll" id="flowScroll"><div class="flow" id="flow"></div></div><div class="flow-nav" aria-label="流程节点导航"><button type="button" id="prevNode" aria-label="上一个节点">‹</button><button type="button" id="nextNode" aria-label="下一个节点">›</button></div></div></section><section class="detail" id="detail" aria-live="polite"></section></div>
+    <div class="surface"><section class="chart" id="chart" aria-label="物流全链路流程图"><div class="chart-inner"><div class="chart-heading"><strong id="flowTitle"></strong><small id="flowCount"></small></div><div class="branch-bar" id="branchBar" aria-label="流程分支"><span class="branch-caption">流程情境</span><button type="button" data-branch="normal" aria-pressed="true">常规交付</button><button type="button" data-branch="cancel" aria-pressed="false">揽收前取消</button><button type="button" data-branch="intercept" aria-pressed="false">运输中拦截退回</button><button type="button" data-branch="interceptFail" aria-pressed="false">拦截未成功</button><button type="button" data-branch="reroute" aria-pressed="false">拦截改址</button><button type="button" data-branch="failed" aria-pressed="false">未妥投再投</button><button type="button" data-branch="refuse" aria-pressed="false">拒收退回</button><button type="button" data-branch="pickupPoint" aria-pressed="false">转站点自提</button><button type="button" data-branch="unclaimed" aria-pressed="false">超期未取退回</button></div><div class="branch-context" id="branchContext" aria-live="polite"></div><div class="flow-scroll" id="flowScroll"><div class="flow" id="flow"></div></div><div class="flow-nav" aria-label="流程节点导航"><button type="button" id="prevNode" aria-label="上一个节点">‹</button><button type="button" id="nextNode" aria-label="下一个节点">›</button></div></div></section><section class="detail" id="detail" aria-live="polite"></section></div>
   </main>
 </div>
 <div class="modal-layer" id="modalLayer" aria-hidden="true"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal-head"><h2 id="modalTitle"></h2><button type="button" id="closeModal">关闭 ×</button></div><div class="modal-body" id="modalBody"></div></div></div>
@@ -334,11 +339,14 @@ function layoutFlow(){
   if(n<=8){width=Math.min(550,Math.max(190,(viewport-baseGap*(n-1))/n));gap=Math.max(baseGap,(viewport-width*n)/Math.max(1,n-1))}
   else{width=Math.min(365,Math.max(178,(viewport-baseGap*9)/10));gap=Math.max(baseGap,(viewport-width*n)/Math.max(1,n-1))}
   const cardHeight=Math.min(900,Math.max(265,box.clientHeight-12));
-  const headHeight=Math.min(310,Math.max(106,cardHeight*.36));
+  const headHeight=Math.min(360,Math.max(120,cardHeight*(n<=3?.44:.36)));
+  const titleSize=Math.min(27,Math.max(13,width*.048));
+  const captionSize=Math.min(18,Math.max(10,width*.033));
+  const iconSize=Math.max(44,Math.min(190,headHeight*.55,headHeight-titleSize*2.5-captionSize*1.5-22));
   flow.style.setProperty('--card-w',width+'px');flow.style.setProperty('--node-gap',gap+'px');flow.style.setProperty('--card-h',cardHeight+'px');flow.style.setProperty('--head-h',headHeight+'px');
-  flow.style.setProperty('--icon-size',Math.min(205,Math.max(70,width*.4,headHeight*.57))+'px');
-  flow.style.setProperty('--title-size',Math.min(31,Math.max(13,width*.065))+'px');
-  flow.style.setProperty('--caption-size',Math.min(21,Math.max(10,width*.045))+'px');
+  flow.style.setProperty('--icon-size',iconSize+'px');
+  flow.style.setProperty('--title-size',titleSize+'px');
+  flow.style.setProperty('--caption-size',captionSize+'px');
   flow.style.setProperty('--step-size',Math.min(24,Math.max(11,width*.054))+'px');
   flow.style.setProperty('--step-height',Math.min(51,Math.max(24,cardHeight*.06))+'px');
   flow.style.width=Math.max(viewport,n*width+(n-1)*gap)+'px';
@@ -403,7 +411,7 @@ document.addEventListener('keydown',e=>{const card=e.target.closest?.('[data-nod
 $('prevNode').addEventListener('click',()=>stepNode(-1));$('nextNode').addEventListener('click',()=>stepNode(1));
 $('flowScroll').addEventListener('scroll',updateFlowNav,{passive:true});
 new ResizeObserver(()=>{layoutFlow();updateFlowNav()}).observe($('flowScroll'));
-let previousFocus=null;function openModal(kind){previousFocus=document.activeElement;if(kind==='refs'){$('modalTitle').textContent='参考文档';$('modalBody').innerHTML='<p>本图将 GS1 退货交接与运输、UPU 网络收寄分拣作业以及承运商异常处理规则组合成行业示意。返运路径是可能的组织方式，网点、分拣和中转不代表每票必经。不同企业、服务产品和运输网络可增减实际节点。</p>'+SOURCES.map(([name,desc,url])=>`<div class="reference"><strong><a href="${url}" target="_blank" rel="noopener noreferrer">${ESC(name)} ↗</a></strong><span>${ESC(desc)}</span></div>`).join('')}else{$('modalTitle').textContent='读图说明';$('modalBody').innerHTML='<p>左侧选择 C2C、C2B、B2C、B2B 业务场景。主图上方选择常规交付、主动退回或具体异常分支；B2B 以及返运分支还可以选择直达或网络路径。</p><p>主图按时间从左到右展示路径；绿色卡片和回转箭头提示实物回流。拦截仅为申请，执行结果取决于货物状态与服务规则。网络返运的网点、分拣和中转是可选的典型作业，不代表所有货物必经。</p><p>每张卡片内按时间顺序列出作业；点击卡片后更新下方详情。可用两侧按钮或键盘左右箭头逐节点浏览。</p><p>本图将同一地点连续作业合并：业务订单与物流委托、站点与配送交接、末端交付与签收。物流委托生成与实物揽收仍是不同节点。</p>'}$('modalLayer').classList.add('open');$('modalLayer').setAttribute('aria-hidden','false');$('closeModal').focus()}
+let previousFocus=null;function openModal(kind){previousFocus=document.activeElement;if(kind==='refs'){$('modalTitle').textContent='参考文档';$('modalBody').innerHTML='<p>本图将 GS1 退货交接与运输、UPU 网络收寄分拣作业以及承运商异常处理规则组合成行业示意。返运路径是可能的组织方式，网点、分拣和中转不代表每票必经。不同企业、服务产品和运输网络可增减实际节点。</p>'+SOURCES.map(([name,desc,url])=>`<div class="reference"><strong><a href="${url}" target="_blank" rel="noopener noreferrer">${ESC(name)} ↗</a></strong><span>${ESC(desc)}</span></div>`).join('')}else{$('modalTitle').textContent='读图说明';$('modalBody').innerHTML='<p>左侧选择 C2C、C2B、B2C、B2B 业务场景；“主动退回”入口位于 C2B 下方，按当前选中的业务场景展示回流链路。主图上方选择常规交付或异常分支；B2B 以及返运分支还可以选择直达或网络路径。</p><p>主图按时间从左到右展示路径；绿色卡片和回转箭头提示实物回流。拦截仅为申请，执行结果取决于货物状态与服务规则。网络返运的网点、分拣和中转是可选的典型作业，不代表所有货物必经。</p><p>每张卡片内按时间顺序列出作业；点击卡片后更新下方详情。可用两侧按钮或键盘左右箭头逐节点浏览。</p><p>本图将同一地点连续作业合并：业务订单与物流委托、站点与配送交接、末端交付与签收。物流委托生成与实物揽收仍是不同节点。</p>'}$('modalLayer').classList.add('open');$('modalLayer').setAttribute('aria-hidden','false');$('closeModal').focus()}
 function closeModal(){$('modalLayer').classList.remove('open');$('modalLayer').setAttribute('aria-hidden','true');previousFocus?.focus()}
 $('guideBtn').onclick=()=>openModal('guide');$('refsBtn').onclick=()=>openModal('refs');$('closeModal').onclick=closeModal;$('modalLayer').addEventListener('click',e=>{if(e.target===$('modalLayer'))closeModal()});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('modalLayer').classList.contains('open')){closeModal();return}if($('modalLayer').classList.contains('open')||e.target.matches('input,textarea,select,[contenteditable="true"]'))return;if(e.key==='ArrowRight'||e.key==='ArrowLeft'){e.preventDefault();stepNode(e.key==='ArrowRight'?1:-1)}});render();
 </script>
