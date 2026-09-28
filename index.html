@@ -154,8 +154,16 @@
     @media(max-width:680px){.brand-logo{width:33px;height:33px}.branch-bar{min-height:37px;gap:4px}.branch-caption{display:none}.branch-bar button{font-size:10px;padding:5px 7px}.branch-context{min-height:23px;font-size:9px}}
     .flow-card{cursor:pointer}
     .flow-card:hover:not(.active){border-color:#61b5bd;box-shadow:0 7px 20px #176f842d}
-    .return-scene{margin-left:clamp(10px,.65vw,20px);border-color:#b4d7c5;background:#f3faf5;color:#27684e}
-    .return-scene.active{background:#dff3e7;border-color:#55b888;box-shadow:inset 4px 0 #3aa872}
+    .return-block{display:none;min-width:0;background:#eef8f2;border:1px solid #cce5d6;border-radius:10px;padding:8px;animation:reveal .35s both}
+    .return-block.visible{display:block}
+    .return-toggle{box-sizing:border-box;width:100%;min-width:0;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 9px;border:1px solid #a8d2ba;border-radius:8px;background:#fff;color:#27684e;cursor:pointer;font:inherit;font-size:clamp(11px,.64vw,17px);font-weight:800;text-align:left;transition:background .25s,border-color .25s,box-shadow .25s}
+    .return-toggle:hover{border-color:#57b582;background:#f7fcf8}
+    .return-toggle[aria-checked="true"]{background:#dff3e7;border-color:#3aa872;box-shadow:inset 4px 0 #3aa872}
+    .return-toggle .toggle-track{flex:none;width:34px;height:20px;padding:2px;border-radius:999px;background:#a4b8ad;transition:background .25s}
+    .return-toggle .toggle-track::after{content:"";display:block;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 3px #0002;transition:transform .25s}
+    .return-toggle[aria-checked="true"] .toggle-track{background:#2fa877}
+    .return-toggle[aria-checked="true"] .toggle-track::after{transform:translateX(14px)}
+    @media(max-width:680px){.return-block{padding:4px}.return-toggle{padding:5px 4px;gap:4px;font-size:10px}.return-toggle .toggle-track{width:26px;height:16px;padding:2px}.return-toggle .toggle-track::after{width:12px;height:12px}.return-toggle[aria-checked="true"] .toggle-track::after{transform:translateX(14px)}}
     .card-head{box-sizing:border-box;overflow:hidden}
     .card-head img{flex:none}
     .card-title{width:100%;flex:none}
@@ -167,7 +175,7 @@
   <main class="main">
     <aside class="sidebar" aria-label="业务场景与返运组织">
       <div class="rail-heading">业务场景</div>
-      <div class="scene-group"><div class="group-title">个人发起</div><button type="button" class="scene active" data-scene="c2c" aria-pressed="true"><strong>C2C　个人 → 个人</strong><span class="scene-desc">个人寄件，上门揽收或自行交件，交付另一位个人。</span></button><button type="button" class="scene" data-scene="c2b" aria-pressed="false"><strong>C2B　个人 → 企业</strong><span class="scene-desc">个人向企业寄件，可用于退货、返修、回收或送检。</span></button><button type="button" class="scene return-scene" data-branch="return" aria-pressed="false"><strong>↶ 主动退回</strong><span class="scene-desc">按当前业务场景展示退货、返修或回收链路。</span></button></div>
+      <div class="scene-group"><div class="group-title">个人发起</div><button type="button" class="scene active" data-scene="c2c" aria-pressed="true"><strong>C2C　个人 → 个人</strong><span class="scene-desc">个人寄件，上门揽收或自行交件，交付另一位个人。</span></button><button type="button" class="scene" data-scene="c2b" aria-pressed="false"><strong>C2B　个人 → 企业</strong><span class="scene-desc">个人向企业寄件，可用于退货、返修、回收或送检。</span></button><div class="return-block" id="returnBlock"><button type="button" class="return-toggle" id="returnToggle" data-return-toggle role="switch" aria-checked="false" aria-label="主动退回"><span>主动退回</span><span class="toggle-track" aria-hidden="true"></span></button></div></div>
       <div class="scene-group"><div class="group-title">企业发起</div><button type="button" class="scene" data-scene="b2c" aria-pressed="false"><strong>B2C　企业 → 个人</strong><span class="scene-desc">商家或仓库备货，通过仓配或承运商送到消费者。</span></button><button type="button" class="scene" data-scene="b2b" aria-pressed="false"><strong>B2B　企业 → 企业</strong><span class="scene-desc">采购、调拨与销售发货，可走整车直达或零担网络。</span></button></div>
       <div class="route-block" id="routeBlock"><span id="routeTitle">运输组织（示例）</span><button type="button" class="route" data-route="direct" aria-pressed="false">直达运输</button><button type="button" class="route active" data-route="network" aria-pressed="true">网点／分拣网络</button></div>
       <div class="rail-note">同一地点、连续完成的作业合并展示。不同场景不经过的节点会从主图移除。</div>
@@ -273,6 +281,8 @@ function currentStages(){
 function steps(s){return s.by?.[scene]||s.steps}
 function updateControls(){
   document.querySelectorAll('[data-scene]').forEach(el=>{const active=el.dataset.scene===scene;el.classList.toggle('active',active);el.setAttribute('aria-pressed',active)});
+  $('returnBlock').classList.toggle('visible',scene==='c2b');
+  $('returnToggle').setAttribute('aria-checked',branch==='return');
   const returnPath=['return','intercept','refuse','unclaimed'].includes(branch);
   $('routeBlock').classList.toggle('visible',returnPath||scene==='b2b');
   $('routeTitle').textContent=returnPath?'返运组织（示例）':'B2B 运输路径';
@@ -384,7 +394,8 @@ function transitionTo(mutate,resetScroll=false){
 function setFocus(id,center=false){if(focus!==id){focus=id;document.querySelectorAll('#flow .flow-card').forEach(el=>{const active=el.dataset.node===id;el.classList.toggle('active',active);el.setAttribute('aria-pressed',active)});renderDetail();updateFlowNav()}if(center)centerCard(id)}
 function stepNode(delta){const box=$('flowScroll'),card=$('flow').querySelector('.flow-card');if(!card)return;const gap=parseFloat(getComputedStyle($('flow')).getPropertyValue('--node-gap'))||30;const max=Math.max(0,box.scrollWidth-box.clientWidth);box.scrollTo({left:Math.max(0,Math.min(max,box.scrollLeft+delta*(card.getBoundingClientRect().width+gap))),behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'})}
 function activate(el){
-  if(el?.dataset.scene&&el.dataset.scene!==scene)transitionTo(()=>{scene=el.dataset.scene},false);
+  if(el?.dataset.scene&&el.dataset.scene!==scene)transitionTo(()=>{scene=el.dataset.scene;if(scene!=='c2b'&&branch==='return'){branch='normal';direction='forward';focus='pickup'}},false);
+  else if(el?.hasAttribute('data-return-toggle')&&scene==='c2b'){const next=branch==='return'?'normal':'return';transitionTo(()=>{branch=next;direction=next==='return'?'reverse':'forward';focus=next==='return'?'r-request':'pickup'},false);setTimeout(()=>centerCard(focus),100)}
   else if(el?.dataset.route&&el.dataset.route!==route)transitionTo(()=>{route=el.dataset.route},false);
   else if(el?.dataset.branch&&el.dataset.branch!==branch){
     const next=el.dataset.branch;
@@ -406,12 +417,12 @@ function nudgeFromRightmost(card){
   box.scrollTo({left:box.scrollLeft+step,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});
 }
 document.addEventListener('pointerover',e=>{if(e.pointerType!=='mouse')return;const card=e.target.closest?.('[data-node]');if(card&&!card.contains(e.relatedTarget))nudgeFromRightmost(card)});
-document.addEventListener('click',e=>{activate(e.target.closest?.('[data-scene],[data-route],[data-branch]'));const card=e.target.closest?.('[data-node]');if(card)setFocus(card.dataset.node)});
+document.addEventListener('click',e=>{activate(e.target.closest?.('[data-scene],[data-route],[data-branch],[data-return-toggle]'));const card=e.target.closest?.('[data-node]');if(card)setFocus(card.dataset.node)});
 document.addEventListener('keydown',e=>{const card=e.target.closest?.('[data-node]');if(card&&(e.key==='Enter'||e.key===' ')){e.preventDefault();setFocus(card.dataset.node)}});
 $('prevNode').addEventListener('click',()=>stepNode(-1));$('nextNode').addEventListener('click',()=>stepNode(1));
 $('flowScroll').addEventListener('scroll',updateFlowNav,{passive:true});
 new ResizeObserver(()=>{layoutFlow();updateFlowNav()}).observe($('flowScroll'));
-let previousFocus=null;function openModal(kind){previousFocus=document.activeElement;if(kind==='refs'){$('modalTitle').textContent='参考文档';$('modalBody').innerHTML='<p>本图将 GS1 退货交接与运输、UPU 网络收寄分拣作业以及承运商异常处理规则组合成行业示意。返运路径是可能的组织方式，网点、分拣和中转不代表每票必经。不同企业、服务产品和运输网络可增减实际节点。</p>'+SOURCES.map(([name,desc,url])=>`<div class="reference"><strong><a href="${url}" target="_blank" rel="noopener noreferrer">${ESC(name)} ↗</a></strong><span>${ESC(desc)}</span></div>`).join('')}else{$('modalTitle').textContent='读图说明';$('modalBody').innerHTML='<p>左侧选择 C2C、C2B、B2C、B2B 业务场景；“主动退回”入口位于 C2B 下方，按当前选中的业务场景展示回流链路。主图上方选择常规交付或异常分支；B2B 以及返运分支还可以选择直达或网络路径。</p><p>主图按时间从左到右展示路径；绿色卡片和回转箭头提示实物回流。拦截仅为申请，执行结果取决于货物状态与服务规则。网络返运的网点、分拣和中转是可选的典型作业，不代表所有货物必经。</p><p>每张卡片内按时间顺序列出作业；点击卡片后更新下方详情。可用两侧按钮或键盘左右箭头逐节点浏览。</p><p>本图将同一地点连续作业合并：业务订单与物流委托、站点与配送交接、末端交付与签收。物流委托生成与实物揽收仍是不同节点。</p>'}$('modalLayer').classList.add('open');$('modalLayer').setAttribute('aria-hidden','false');$('closeModal').focus()}
+let previousFocus=null;function openModal(kind){previousFocus=document.activeElement;if(kind==='refs'){$('modalTitle').textContent='参考文档';$('modalBody').innerHTML='<p>本图将 GS1 退货交接与运输、UPU 网络收寄分拣作业以及承运商异常处理规则组合成行业示意。返运路径是可能的组织方式，网点、分拣和中转不代表每票必经。不同企业、服务产品和运输网络可增减实际节点。</p>'+SOURCES.map(([name,desc,url])=>`<div class="reference"><strong><a href="${url}" target="_blank" rel="noopener noreferrer">${ESC(name)} ↗</a></strong><span>${ESC(desc)}</span></div>`).join('')}else{$('modalTitle').textContent='读图说明';$('modalBody').innerHTML='<p>左侧选择 C2C、C2B、B2C、B2B 业务场景；进入 C2B 场景后，会在其下方显示“主动退回”开关；打开时展示回流链路，关闭时回到常规交付。主图上方选择常规交付或异常分支；B2B 以及返运分支还可以选择直达或网络路径。</p><p>主图按时间从左到右展示路径；绿色卡片和回转箭头提示实物回流。拦截仅为申请，执行结果取决于货物状态与服务规则。网络返运的网点、分拣和中转是可选的典型作业，不代表所有货物必经。</p><p>每张卡片内按时间顺序列出作业；点击卡片后更新下方详情。可用两侧按钮或键盘左右箭头逐节点浏览。</p><p>本图将同一地点连续作业合并：业务订单与物流委托、站点与配送交接、末端交付与签收。物流委托生成与实物揽收仍是不同节点。</p>'}$('modalLayer').classList.add('open');$('modalLayer').setAttribute('aria-hidden','false');$('closeModal').focus()}
 function closeModal(){$('modalLayer').classList.remove('open');$('modalLayer').setAttribute('aria-hidden','true');previousFocus?.focus()}
 $('guideBtn').onclick=()=>openModal('guide');$('refsBtn').onclick=()=>openModal('refs');$('closeModal').onclick=closeModal;$('modalLayer').addEventListener('click',e=>{if(e.target===$('modalLayer'))closeModal()});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('modalLayer').classList.contains('open')){closeModal();return}if($('modalLayer').classList.contains('open')||e.target.matches('input,textarea,select,[contenteditable="true"]'))return;if(e.key==='ArrowRight'||e.key==='ArrowLeft'){e.preventDefault();stepNode(e.key==='ArrowRight'?1:-1)}});render();
 </script>
