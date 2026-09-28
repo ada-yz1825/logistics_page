@@ -128,18 +128,14 @@
     /* Navigation floats beside the cards; the bottom edge stays clear. */
     .chart-inner{position:relative}
     .flow-nav{position:absolute;inset:0;height:auto;padding:0;border:0;pointer-events:none;z-index:5;display:block}
-    .flow-nav button{position:absolute;top:52%;width:clamp(43px,2.7vw,88px);height:clamp(58px,4.4vw,130px);border-radius:0 18px 18px 0;background:#eaf8fbdd;backdrop-filter:blur(9px);font-size:clamp(34px,2.2vw,70px);pointer-events:auto;transform:translateY(-50%);box-shadow:0 5px 22px #1f5d7140}
+    .flow-nav button{position:absolute;top:52%;width:clamp(43px,2.7vw,88px);height:clamp(58px,4.4vw,130px);border-radius:0 18px 18px 0;background:#eaf8fb;font-size:clamp(34px,2.2vw,70px);pointer-events:auto;transform:translateY(-50%);box-shadow:0 5px 22px #1f5d7140}
     .flow-nav button:hover:not(:disabled){transform:translateY(-50%) scale(1.05)}
     .flow-nav button[hidden]{display:none}
     #prevNode{left:0;border-left:0}
     #nextNode{right:0;border-right:0;border-radius:18px 0 0 18px}
-    .flow-edge{position:absolute;top:clamp(55px,3vw,84px);bottom:clamp(10px,.75vw,22px);width:clamp(28px,3.5vw,120px);z-index:3;pointer-events:none;backdrop-filter:blur(4px);opacity:0;transition:opacity .25s}
-    .flow-edge.visible{opacity:1}
-    .flow-edge-left{left:0;background:linear-gradient(90deg,#f8fcffbd,transparent);mask-image:linear-gradient(90deg,#000,transparent)}
-    .flow-edge-right{right:0;background:linear-gradient(270deg,#f4fbfdba,transparent);mask-image:linear-gradient(270deg,#000,transparent)}
     .flow-card{box-shadow:0 7px 19px #164a6726}
     .detail{height:clamp(245px,30vh,650px)}
-    @media(max-width:680px){.flow-nav{height:auto}.flow-nav button{width:32px;height:54px;font-size:29px;border-radius:0 10px 10px 0}.flow-nav button:hover:not(:disabled){transform:translateY(-50%)}#nextNode{border-radius:10px 0 0 10px}.flow-edge{top:42px;bottom:5px;width:26px}}
+    @media(max-width:680px){.flow-nav{height:auto}.flow-nav button{width:32px;height:54px;font-size:29px;border-radius:0 10px 10px 0}.flow-nav button:hover:not(:disabled){transform:translateY(-50%)}#nextNode{border-radius:10px 0 0 10px}}
     .brand-logo{width:clamp(38px,2.55vw,68px);height:clamp(38px,2.55vw,68px);border:0;border-radius:0;display:block;object-fit:contain;transform:none;filter:drop-shadow(0 3px 7px #0004)}
     .branch-bar{flex:none;min-height:clamp(43px,2.7vw,64px);display:flex;align-items:center;gap:clamp(5px,.4vw,12px);min-width:0;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid #dcebf1;padding:0 3px 5px}
     .branch-bar::-webkit-scrollbar{display:none}
@@ -155,8 +151,7 @@
     .flow-card.resolution .card-head{background:#e3eefb}
     .flow-connector.return-link span{background:#e3f4e9;color:#218964;animation:returnPulse 1.7s ease-in-out infinite}
     @keyframes returnPulse{50%{transform:scale(1.15);box-shadow:0 0 0 7px #56be841c}}
-    .flow-edge{top:clamp(115px,7vw,170px)}
-    @media(max-width:680px){.brand-logo{width:33px;height:33px}.branch-bar{min-height:37px;gap:4px}.branch-caption{display:none}.branch-bar button{font-size:10px;padding:5px 7px}.branch-context{min-height:23px;font-size:9px}.flow-edge{top:103px}}
+    @media(max-width:680px){.brand-logo{width:33px;height:33px}.branch-bar{min-height:37px;gap:4px}.branch-caption{display:none}.branch-bar button{font-size:10px;padding:5px 7px}.branch-context{min-height:23px;font-size:9px}}
     .flow-card{cursor:pointer}
     .flow-card:hover:not(.active){border-color:#61b5bd;box-shadow:0 7px 20px #176f842d}
   </style>
@@ -165,16 +160,14 @@
 <div class="app">
   <header class="topbar"><div class="brand"><img class="brand-logo" src="assets/brand-logo.png" width="48" height="48" alt=""><h1>物流行业全链路流程图</h1><p>订单、实物、运输、交付与回流</p></div><div class="top-actions"><button type="button" id="guideBtn">读图说明</button><button type="button" id="refsBtn">参考资料</button></div></header>
   <main class="main">
-    <aside class="sidebar" aria-label="业务场景与方向">
-      <div class="rail-heading">流程方向</div>
-      <div class="switch-card"><p class="switch-label">选择当前展示的链路</p><div class="direction-switch" id="directionSwitch"><span class="switch-slider" aria-hidden="true"></span><button type="button" data-direction="forward" aria-pressed="true">正向履约</button><button type="button" data-direction="reverse" aria-pressed="false">逆向订单</button></div><p class="switch-hint" id="switchHint">从业务发起到签收、结算</p></div>
+    <aside class="sidebar" aria-label="业务场景与返运组织">
       <div class="rail-heading">业务场景</div>
       <div class="scene-group"><div class="group-title">个人发起</div><button type="button" class="scene active" data-scene="c2c" aria-pressed="true"><strong>C2C　个人 → 个人</strong><span class="scene-desc">个人寄件，上门揽收或自行交件，交付另一位个人。</span></button><button type="button" class="scene" data-scene="c2b" aria-pressed="false"><strong>C2B　个人 → 企业</strong><span class="scene-desc">退货、返修、回收、送检等，企业接收并验收。</span></button></div>
       <div class="scene-group"><div class="group-title">企业发起</div><button type="button" class="scene" data-scene="b2c" aria-pressed="false"><strong>B2C　企业 → 个人</strong><span class="scene-desc">商家或仓库备货，通过仓配或承运商送到消费者。</span></button><button type="button" class="scene" data-scene="b2b" aria-pressed="false"><strong>B2B　企业 → 企业</strong><span class="scene-desc">采购、调拨与销售发货，可走整车直达或零担网络。</span></button></div>
-      <div class="route-block" id="routeBlock"><span>B2B 运输路径</span><button type="button" class="route active" data-route="direct" aria-pressed="true">整车直达</button><button type="button" class="route" data-route="network" aria-pressed="false">零担网络</button></div>
+      <div class="route-block" id="routeBlock"><span id="routeTitle">运输组织（示例）</span><button type="button" class="route" data-route="direct" aria-pressed="false">直达运输</button><button type="button" class="route active" data-route="network" aria-pressed="true">网点／分拣网络</button></div>
       <div class="rail-note">同一地点、连续完成的作业合并展示。不同场景不经过的节点会从主图移除。</div>
     </aside>
-    <div class="surface"><section class="chart" id="chart" aria-label="物流全链路流程图"><div class="chart-inner"><div class="chart-heading"><strong id="flowTitle"></strong><small id="flowCount"></small></div><div class="branch-bar" id="branchBar" aria-label="流程分支"><span class="branch-caption">分支情境</span><button type="button" data-branch="normal" aria-pressed="true">常规交付</button><button type="button" data-branch="cancel" aria-pressed="false">揽收前取消</button><button type="button" data-branch="intercept" aria-pressed="false">运输中拦截退回</button><button type="button" data-branch="reroute" aria-pressed="false">拦截改址</button><button type="button" data-branch="failed" aria-pressed="false">未妥投再投</button><button type="button" data-branch="refuse" aria-pressed="false">拒收退回</button><button type="button" data-branch="pickupPoint" aria-pressed="false">转站点自提</button><button type="button" data-branch="unclaimed" aria-pressed="false">超期未取退回</button></div><div class="branch-context" id="branchContext" aria-live="polite"></div><div class="flow-scroll" id="flowScroll"><div class="flow" id="flow"></div></div><span class="flow-edge flow-edge-left" id="edgeLeft" aria-hidden="true"></span><span class="flow-edge flow-edge-right" id="edgeRight" aria-hidden="true"></span><div class="flow-nav" aria-label="流程节点导航"><button type="button" id="prevNode" aria-label="上一个节点">‹</button><button type="button" id="nextNode" aria-label="下一个节点">›</button></div></div></section><section class="detail" id="detail" aria-live="polite"></section></div>
+    <div class="surface"><section class="chart" id="chart" aria-label="物流全链路流程图"><div class="chart-inner"><div class="chart-heading"><strong id="flowTitle"></strong><small id="flowCount"></small></div><div class="branch-bar" id="branchBar" aria-label="流程分支"><span class="branch-caption">流程情境</span><button type="button" data-branch="normal" aria-pressed="true">常规交付</button><button type="button" data-branch="return" aria-pressed="false">主动退回</button><button type="button" data-branch="cancel" aria-pressed="false">揽收前取消</button><button type="button" data-branch="intercept" aria-pressed="false">运输中拦截退回</button><button type="button" data-branch="interceptFail" aria-pressed="false">拦截未成功</button><button type="button" data-branch="reroute" aria-pressed="false">拦截改址</button><button type="button" data-branch="failed" aria-pressed="false">未妥投再投</button><button type="button" data-branch="refuse" aria-pressed="false">拒收退回</button><button type="button" data-branch="pickupPoint" aria-pressed="false">转站点自提</button><button type="button" data-branch="unclaimed" aria-pressed="false">超期未取退回</button></div><div class="branch-context" id="branchContext" aria-live="polite"></div><div class="flow-scroll" id="flowScroll"><div class="flow" id="flow"></div></div><div class="flow-nav" aria-label="流程节点导航"><button type="button" id="prevNode" aria-label="上一个节点">‹</button><button type="button" id="nextNode" aria-label="下一个节点">›</button></div></div></section><section class="detail" id="detail" aria-live="polite"></section></div>
   </main>
 </div>
 <div class="modal-layer" id="modalLayer" aria-hidden="true"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal-head"><h2 id="modalTitle"></h2><button type="button" id="closeModal">关闭 ×</button></div><div class="modal-body" id="modalBody"></div></div></div>
@@ -186,7 +179,9 @@ const SOURCES=[
   ['UPU · Domestic Postal System','邮政网络的收寄、分拣、发运与投递作业示例；用于辅助理解网络节点。','https://www.upu.int/en/Postal-Solutions/Technical-Solutions/Products/DPS---Domestic-Postal-System'],
   ['UPS · Delivery Intercept','拦截申请可以在交付前请求退回、改址、延期或暂存；是否执行依服务规则和货物状态而定。','https://www.ups.com/us/en/support/tracking-support/change-delivery-options/delivery-intercept'],
   ['FedEx · Delivery Manager FAQ','未妥投、再次派送、拒收等末端异常情况的承运商实践。','https://www.fedex.com/en-us/faq/delivery-manager.html'],
-  ['UPU · Convention Manual, Return to Sender','无法投递与退回发件人的国际邮政作业规则示例。','https://www.upu.int/UPU/media/upu/files/UPU/aboutUpu/acts/manualsInThreeVolumes/actInThreeVolumesManualOfConventionMaj2En.pdf']
+  ['UPU · Convention Manual, Return to Sender','无法投递与退回发件人的国际邮政作业规则示例。','https://www.upu.int/UPU/media/upu/files/aboutUpu/acts/06-manualsInThreeVolumes/actInThreeVolumesConventionManual202506En.pdf'],
+  ['FedEx · Shipping FAQ','未扫描货物取消发运的承运商规则示例。','https://www.fedex.com/en-us/shipping/faqs.html'],
+  ['USPS · Labels API','未使用标签取消或退款的邮政服务示例。','https://developers.usps.com/domesticlabelsv3']
 ];
 const SCENES={c2c:'C2C 个人 → 个人',c2b:'C2B 个人 → 企业',b2c:'B2C 企业 → 个人',b2b:'B2B 企业 → 企业'};
 const FORWARD=[
@@ -208,15 +203,16 @@ const REVERSE=[
  {id:'r-request',title:'逆向申请与受理',icon:'reverse',caption:'形成回流服务需求',steps:['提交原因和货物信息','审核规则与凭证','明确承担方和费用','生成逆向订单'],detail:'拒收、退货、返修、召回、回收等触发新的物流委托；原交易售后单与逆向运单应关联。',by:{c2c:['发起拒收／退回','确认原寄件人','确定退回费用','生成退回任务'],c2b:['提交返修／回收申请','企业审核与受理','确认回寄条件','生成逆向订单'],b2c:['消费者申请退货','商家／平台审核','确定退款与运费规则','生成退货单'],b2b:['企业退货／召回','核对合同与批次','明确责任与费用','生成返运委托']}},
  {id:'r-book',title:'回寄预约',icon:'calendar',caption:'确定取件方式与时间',steps:['确定取件地址','选择上门／自行交件','预约时间窗口','准备包装与标签'],detail:'取件预约与物流委托通常在线上完成；实物尚未进入逆向运输网络。'},
  {id:'r-pick',title:'逆向揽收',icon:'handover',caption:'退回货物交接',steps:['交件核验','称重／计量与扫描','记录货物状态','责任交接'],detail:'承运方实际取得退回货物，建立原订单、逆向运单与交接记录的对应关系。'},
- {id:'r-transit',title:'逆向运输',icon:'truck',caption:'回流到处理地点',steps:['路由与配载','始发集货／中转','在途运输','异常跟踪'],detail:'可走正向网络的反向线路，也可使用专门的回收、维修或召回路线。'},
- {id:'r-receive',title:'回流接收',icon:'warehouse',caption:'退回目的地',steps:['到货签收','核对数量与状态','入库或登记差异'],detail:'目的地可以是原寄件人、商家仓、维修中心、检测点或回收仓。',by:{c2c:['原寄件人接收','核对退回货物','签收或反馈异常'],c2b:['企业／回收点接收','核对回寄任务','登记差异'],b2c:['商家仓接收','核对退货单','退货入库'],b2b:['企业仓接收','批次与数量核对','差异登记']}},
+ {id:'r-receive',title:'退回收货确认',icon:'warehouse',caption:'收货方核对实物',steps:['收货方接收实物','核对数量与状态','确认收货或登记差异'],detail:'GS1 将承运方的交付结果与目的地仓库的收货确认区分。目的地可以是原寄件人、商家仓、维修中心或回收仓；入库和检验依具体业务继续办理。',by:{c2c:['原寄件人接收','核对退回货物','确认或反馈差异'],c2b:['企业／回收点接收','核对回寄任务','确认或登记差异'],b2c:['商家仓接收','核对退货单','收货确认／差异登记'],b2b:['企业仓接收','核对批次与数量','确认或登记差异']}},
  {id:'r-inspect',title:'检测与分类',icon:'inspect',caption:'确定货物后续去向',steps:['外观／功能检测','记录成色和损伤','分级分类','确定处置方案'],detail:'检测结果决定维修、换货、复售、再利用、再生或报废；个人退回原寄件人的货物可略过企业检测。'},
  {id:'r-close',title:'处置与结算',icon:'recycle',caption:'实物、资金和状态闭环',steps:['退款／换货／返还','复售／再生／报废','费用对账','状态归档'],detail:'实物处置、财务结算和售后状态回传完成后，逆向订单闭环。',by:{c2c:['原寄件人确认收货','退回费用结算','关闭退回任务'],c2b:['维修／回收／检测','返还或补偿','结算与归档'],b2c:['退款／换货','复售／维修／报废','对账与归档'],b2b:['换货／索赔／返修','库存与合同调整','对账与归档']}}
 ];
 const BRANCHES={
   normal:{label:'常规交付',hint:'按选定业务场景展示常规正向链路；实际网络可增减中转与站点。'},
+  return:{label:'主动退回',hint:'退货、返修、回收等先形成退回需求，再由承运方接货、运输、交付指定处理地点。'},
   cancel:{label:'揽收前取消',hint:'在实物交接前取消：受理并核查状态后关闭委托，无需回运。'},
   intercept:{label:'运输中拦截退回',hint:'以干线在途提出拦截为示例；请求需核验，执行成功后才进入退回运输。'},
+  interceptFail:{label:'拦截未成功',hint:'拦截请求未能在交付前执行时，货物仍可能沿原路径继续配送；后续以实际状态为准。'},
   reroute:{label:'拦截改址',hint:'以在途改址为示例；承运方核验可执行性后重新规划后续路由。'},
   failed:{label:'未妥投再投',hint:'首次派送未完成，货物暂存并改约或补全地址后再次派送。'},
   refuse:{label:'拒收退回',hint:'收货方拒收后先记录原因并确认处置，再按约定回流至发货方。'},
@@ -224,13 +220,12 @@ const BRANCHES={
   unclaimed:{label:'超期未取退回',hint:'站点通知后在约定期限内无人取件，按规则发起退回。'}
 };
 const EXCEPTION_STAGES={
-  cancelled:{id:'cancelled',title:'取消受理与关闭',icon:'order',caption:'未揽收 · 无实物回运',steps:['提出取消申请','核查运单及交接状态','撤销待执行服务','处理费用与通知'],detail:'仅示意实物尚未交给承运方的取消。已经揽收时，应转为拦截申请或其他运输中变更，不能直接视为货物已退回。',branchType:'decision'},
+  cancelled:{id:'cancelled',title:'揽收前取消',icon:'order',caption:'未交运 · 不发生返运',steps:['提交取消请求','核查是否已揽收','取消未使用的运单／标签','按服务规则处理费用'],detail:'FedEx 对未扫描货物提供取消发运，USPS 对未使用标签提供取消或退款路径。已揽收的货物不能视为在原地取消，应另行请求拦截。',branchType:'decision'},
   interceptRequest:{id:'interceptRequest',title:'拦截申请与核验',icon:'reverse',caption:'在途变更 · 成功不保证',steps:['发起拦截／改址请求','核验身份与服务规则','定位最近可控节点','反馈可否执行'],detail:'拦截是请求，不是货物立即停止。可执行性取决于当前位置、服务条款、时效和承运网络；货物可能已接近妥投。',branchType:'decision'},
-  interceptExecute:{id:'interceptExecute',title:'节点拦截执行',icon:'hub',caption:'交接状态重新确认',steps:['货物到可控节点','扫描拦截并暂存','核对件数与状态','改写下一程指令'],detail:'成功拦截要在实际可控节点找到并控制实物，登记交接与异常，再决定退回、改址、暂存或继续原路由。',branchType:'decision'},
-  returnMove:{id:'returnMove',title:'退回运输',icon:'reverse',caption:'实体货物反向流动',steps:['建立退回路由','回流集货／中转','在途运输与跟踪','交给退回目的地'],detail:'退回路线可能复用正向网络，也可能走专门的回收或返运线路；它是新的实物流动，不等同于取消原订单。',branchType:'return'},
-  returnReceive:{id:'returnReceive',title:'退回接收与核对',icon:'warehouse',caption:'发货方或指定点接收',steps:['到货签收','核对身份与数量','登记差异／损伤','决定后续处置'],detail:'原发货方、商家仓或指定处理点接收退回货物；签收与质量检验、退款或结算是不同状态。',branchType:'return'},
+  interceptExecute:{id:'interceptExecute',title:'拦截结果确认',icon:'hub',caption:'成功后才变更后续处理',steps:['承运方处理拦截请求','确认是否已在交付前完成','成功时执行退回／改址选项','通知相关方处理结果'],detail:'UPS 将“退回发件人”和“改址”列为交付前可申请的拦截选项，并说明费用在请求完成时收取。申请不等于执行成功；失败时货物仍可能沿原路径交付。',branchType:'decision'},
+  interceptFailed:{id:'interceptFailed',title:'拦截未完成',icon:'hub',caption:'按原运输状态继续',steps:['承运方反馈未完成结果','核对当前货物位置','继续原有运输或交付','更新相关方状态'],detail:'UPS 的交付拦截服务是交付前的请求，不能保证每个请求都成功。未执行退回或改址时，应以承运方实际运输状态和交付结果为准。',branchType:'decision'},
   returnClose:{id:'returnClose',title:'退回结算与归档',icon:'settlement',caption:'原订单与返运状态关联',steps:['核对退回结果','处理费用与退款','更新订单／运单状态','完成归档'],detail:'把原履约、退回运输和费用状态关联起来，处理可能的退款、返运费或差异责任。',branchType:'return'},
-  replan:{id:'replan',title:'改址与路由重排',icon:'transfer',caption:'从可控节点进入新路线',steps:['确认新收货信息','重新计算路由与费用','变更运输指令','交给下一程网络'],detail:'改址成功后，货物从可控节点进入新的目的地网络；跨区改址可能增加中转和费用，能否改址以服务规则为准。',branchType:'decision'},
+  replan:{id:'replan',title:'改址后继续配送',icon:'transfer',caption:'承运方确认后的新目的地',steps:['确认可用的改址选项','核对新的收货地址','确认相关费用或时效变化','按新地址继续配送'],detail:'UPS 的拦截服务允许在交付前请求将货物送往另一地址；是否允许及实际费用以承运商服务条件和执行结果为准。',branchType:'decision'},
   attempt:{id:'attempt',title:'派送尝试',icon:'delivery',caption:'送达但未完成签收',steps:['联系并到达收货点','核验地址与接收方','尝试交付','记录现场结果'],detail:'派送尝试与签收不同。无人接收、地址问题或收货方拒收都应形成明确结果，再选择重派、改约、自提或退回。',branchType:'decision'},
   failedAttempt:{id:'failedAttempt',title:'未妥投处理',icon:'station',caption:'未完成交付',steps:['记录未妥投原因','联系发件／收件方','确定改约或补充信息','货物回站暂存'],detail:'未妥投不等于拒收，也不一定立即退回。可按服务规则安排再投、暂存、自提或最终退回。',branchType:'decision'},
   redelivery:{id:'redelivery',title:'再次派送与签收',icon:'delivery',caption:'完成改约后的再次交付',steps:['确认新时间或地址','重新分配配送任务','再次派送','签收或继续异常处理'],detail:'再次派送是新的配送尝试。若仍无法交付，可能进入暂存、自提或退回处理，具体次数取决于服务规则。',branchType:'resolution'},
@@ -239,28 +234,49 @@ const EXCEPTION_STAGES={
   pickupSign:{id:'pickupSign',title:'自提核验与交付',icon:'delivery',caption:'收货方到点领取',steps:['到店出示取件凭证','核对身份及货物','现场交付／签收','回传完成状态'],detail:'收货方到自提点领取并完成核验，货物才从自提点转交给收货方；通知已发送不等于妥投。',branchType:'resolution'},
   unclaimedReturn:{id:'unclaimedReturn',title:'超期未取与退回决定',icon:'reverse',caption:'暂存期限结束',steps:['确认取件期限届满','记录未领取原因','通知相关方','按规则生成退回任务'],detail:'在服务约定的暂存期限内未被领取时，可按发货方指令或服务规则退回；期限和处置方式因产品而异。',branchType:'decision'}
 };
+const RETURN_NETWORK={
+  intake:{id:'r-intake',title:'退回接入与集货',icon:'station',caption:'网络返运 · 接入点',steps:['核对退回标识和目的地','记录承运方接货状态','交接至始发处理设施'],detail:'退回件已由承运方控制后，按退回目的地进入其网络。邮政或快递网络可在网点、营业部等接入点完成接收和发运准备；直达返运不经过此节点。',branchType:'return'},
+  sort:{id:'r-sort',title:'退回分拣与发运',icon:'sort',caption:'网络返运 · 始发处理',steps:['到件交接','按退回目的地分拣','形成发运批次','交下一运输区间'],detail:'UPU 的邮政系统把邮件接收、分拣和发运列为网络作业。这里把退回件作为待运输货物按新的目的地组织；不同企业可能在同一设施合并这些作业。',branchType:'return'},
+  linehaul:{id:'r-linehaul',title:'退回区间运输',icon:'truck',caption:'网络返运 · 在途',steps:['确认退回运输指令','完成装载交接','运输区间发运','在途状态回传'],detail:'GS1 退货案例包含运输指令、承运商接货、运输状态和目的地交付。跨区退回可能经过长距离区间；同城路径可省略这一独立节点。',branchType:'return'},
+  relay:{id:'r-relay',title:'退回中转（可选）',icon:'transfer',caption:'可选 · 按承运网络',steps:['中转地点到达交接','按下一程方向分流','换装或交下一承运方','更新运输状态'],detail:'GS1 的货代多承运段模型包含始发集货、主运输段和末段承运。退回是否需要中转由承运网络和目的地决定；直达路径不经过中转。',branchType:'return'},
+  destination:{id:'r-destination',title:'退回目的地分拣',icon:'sort',caption:'网络返运 · 目的地区域',steps:['运输到达交接','按退回收件地点分流','交末段配送'],detail:'网络运输到达目的地区域后，可再次分拣并移交末段配送。该节点只适用于设有目的地分拣设施的路径。',branchType:'return'},
+  dropoff:{id:'r-dropoff',title:'退回交付',icon:'delivery',caption:'承运方向收货点交货',steps:['确认退回收货地点','送达并交接货物','取得交付结果','回传最终运输通知'],detail:'GS1 退货流程将承运方的交付结果通知与收货仓库的收货确认分开。交付完成后，收货方仍需另行核对和处理实物。',branchType:'return'},
+  direct:{id:'r-direct',title:'退回直达运输',icon:'truck',caption:'无需网点分拣和中转',steps:['确认承运方与退回目的地','完成装载交接','直接运输至收货地点','回传运输状态'],detail:'GS1 的退货案例允许承运方从退回起点直接运至指定收货仓；该路径不经过独立的网点、分拣和中转设施。',branchType:'return'}
+};
 const ESC=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-let scene='c2c',direction='forward',route='direct',branch='normal',focus='pickup';
+let scene='c2c',direction='forward',route='network',branch='normal',focus='pickup';
 const $=id=>document.getElementById(id);
+function returnStages(){return route==='direct'?[RETURN_NETWORK.direct,RETURN_NETWORK.dropoff]:[RETURN_NETWORK.intake,RETURN_NETWORK.sort,RETURN_NETWORK.linehaul,RETURN_NETWORK.relay,RETURN_NETWORK.destination,RETURN_NETWORK.dropoff]}
 function currentStages(){
   let list=direction==='reverse'?REVERSE:FORWARD;
-  if(direction==='reverse'){if(scene==='c2c')list=list.filter(s=>s.id!=='r-inspect');return list}
+  if(direction==='reverse'){list=[...list.slice(0,3),...returnStages(),...list.slice(3)];if(scene==='c2c')list=list.filter(s=>s.id!=='r-inspect');return list}
   if(scene==='b2b'&&route==='direct')list=list.filter(s=>!['origin','sort','hub','relay','desthub','destsort','station'].includes(s.id));
   if(branch==='normal')return list;
   if(branch==='cancel')return [list[0],EXCEPTION_STAGES.cancelled];
   const before=id=>list.slice(0,list.findIndex(s=>s.id===id)+1);
   const throughTransit=before('linehaul');
-  if(branch==='intercept')return [...throughTransit,EXCEPTION_STAGES.interceptRequest,EXCEPTION_STAGES.interceptExecute,EXCEPTION_STAGES.returnMove,EXCEPTION_STAGES.returnReceive,EXCEPTION_STAGES.returnClose];
+  if(branch==='intercept')return [...throughTransit,EXCEPTION_STAGES.interceptRequest,EXCEPTION_STAGES.interceptExecute,...returnStages(),REVERSE.find(s=>s.id==='r-receive'),EXCEPTION_STAGES.returnClose];
+  if(branch==='interceptFail')return [...throughTransit,EXCEPTION_STAGES.interceptRequest,EXCEPTION_STAGES.interceptFailed,...list.slice(list.findIndex(s=>s.id==='linehaul')+1)];
   if(branch==='reroute')return [...throughTransit,EXCEPTION_STAGES.interceptRequest,EXCEPTION_STAGES.interceptExecute,EXCEPTION_STAGES.replan,...list.slice(list.findIndex(s=>s.id==='linehaul')+1)];
   const beforeDelivery=list.slice(0,list.findIndex(s=>s.id==='delivery'));
   if(branch==='failed')return [...beforeDelivery,EXCEPTION_STAGES.attempt,EXCEPTION_STAGES.failedAttempt,EXCEPTION_STAGES.redelivery,list.find(s=>s.id==='close')];
-  if(branch==='refuse')return [...beforeDelivery,EXCEPTION_STAGES.attempt,EXCEPTION_STAGES.refusal,EXCEPTION_STAGES.returnMove,EXCEPTION_STAGES.returnReceive,EXCEPTION_STAGES.returnClose];
+  if(branch==='refuse')return [...beforeDelivery,EXCEPTION_STAGES.attempt,EXCEPTION_STAGES.refusal,...returnStages(),REVERSE.find(s=>s.id==='r-receive'),EXCEPTION_STAGES.returnClose];
   if(branch==='pickupPoint')return [...beforeDelivery,EXCEPTION_STAGES.pickupNotice,EXCEPTION_STAGES.pickupSign,list.find(s=>s.id==='close')];
-  if(branch==='unclaimed')return [...beforeDelivery,EXCEPTION_STAGES.pickupNotice,EXCEPTION_STAGES.unclaimedReturn,EXCEPTION_STAGES.returnMove,EXCEPTION_STAGES.returnReceive,EXCEPTION_STAGES.returnClose];
+  if(branch==='unclaimed')return [...beforeDelivery,EXCEPTION_STAGES.pickupNotice,EXCEPTION_STAGES.unclaimedReturn,...returnStages(),REVERSE.find(s=>s.id==='r-receive'),EXCEPTION_STAGES.returnClose];
   return list;
 }
 function steps(s){return s.by?.[scene]||s.steps}
-function updateControls(){document.querySelectorAll('[data-scene]').forEach(el=>{const active=el.dataset.scene===scene;el.classList.toggle('active',active);el.setAttribute('aria-pressed',active)});document.querySelectorAll('[data-direction]').forEach(el=>el.setAttribute('aria-pressed',el.dataset.direction===direction));$('directionSwitch').classList.toggle('reverse',direction==='reverse');$('switchHint').textContent=direction==='reverse'?'退货、拒收、返修或回收的回流链路':'从业务发起到签收、结算';$('routeBlock').classList.toggle('visible',scene==='b2b'&&direction==='forward');document.querySelectorAll('[data-route]').forEach(el=>{const active=el.dataset.route===route;el.classList.toggle('active',active);el.setAttribute('aria-pressed',active)});$('branchBar').hidden=direction==='reverse';$('branchContext').hidden=direction==='reverse';document.querySelectorAll('[data-branch]').forEach(el=>{const active=el.dataset.branch===branch;el.classList.toggle('active',active);el.setAttribute('aria-pressed',active)});$('branchContext').textContent=BRANCHES[branch].hint}
+function updateControls(){
+  document.querySelectorAll('[data-scene]').forEach(el=>{const active=el.dataset.scene===scene;el.classList.toggle('active',active);el.setAttribute('aria-pressed',active)});
+  const returnPath=['return','intercept','refuse','unclaimed'].includes(branch);
+  $('routeBlock').classList.toggle('visible',returnPath||scene==='b2b');
+  $('routeTitle').textContent=returnPath?'返运组织（示例）':'B2B 运输路径';
+  document.querySelector('[data-route="direct"]').textContent=returnPath?'直达返运':'整车直达';
+  document.querySelector('[data-route="network"]').textContent=returnPath?'网点／分拣网络':'零担网络';
+  document.querySelectorAll('[data-route]').forEach(el=>{const active=el.dataset.route===route;el.classList.toggle('active',active);el.setAttribute('aria-pressed',active)});
+  document.querySelectorAll('[data-branch]').forEach(el=>{const active=el.dataset.branch===branch;el.classList.toggle('active',active);el.setAttribute('aria-pressed',active)});
+  $('branchContext').textContent=BRANCHES[branch].hint+(returnPath?' 当前展示'+(route==='direct'?'直达返运。':'经网点与分拣的跨区域示例；中转为可选环节。'):'');
+}
 const SOURCE_LINKS={
   scor:{name:'ASCM SCOR · 订单／履约／退回',url:'https://scor.ascm.org/'},
   gs1:{name:'GS1 · 物流互操作模型',url:'https://ref.gs1.org/standards/logistics-interoperability/1.1.1/'},
@@ -268,7 +284,9 @@ const SOURCE_LINKS={
   cscmp:{name:'CSCMP · 物流管理定义',url:'https://cscmp.org/CSCMP/Educate/SCM_Definitions_and_Glossary_of_Terms.aspx'},
   ups:{name:'UPS · 拦截服务',url:'https://www.ups.com/us/en/support/tracking-support/change-delivery-options/delivery-intercept'},
   fedex:{name:'FedEx · 派送异常与拒收',url:'https://www.fedex.com/en-us/faq/delivery-manager.html'},
-  upureturn:{name:'UPU · 无法投递退回',url:'https://www.upu.int/UPU/media/upu/files/UPU/aboutUpu/acts/manualsInThreeVolumes/actInThreeVolumesManualOfConventionMaj2En.pdf'}
+  upureturn:{name:'UPU · 无法投递退回',url:'https://www.upu.int/UPU/media/upu/files/aboutUpu/acts/06-manualsInThreeVolumes/actInThreeVolumesConventionManual202506En.pdf'},
+  fedexCancel:{name:'FedEx · 发运取消',url:'https://www.fedex.com/en-us/shipping/faqs.html'},
+  usps:{name:'USPS · 未使用标签取消',url:'https://developers.usps.com/domesticlabelsv3'}
 };
 const EVIDENCE={
   order:{sources:['scor','gs1'],records:['业务订单','物流委托','运单']},prepare:{sources:['scor','cscmp'],records:['备货复核','包装标签','出库记录']},pickup:{sources:['gs1','upu'],records:['揽收扫描','计量信息','交接凭证']},
@@ -276,8 +294,8 @@ const EVIDENCE={
   linehaul:{sources:['gs1','cscmp'],records:['班次／车辆','发车时间','在途轨迹']},relay:{sources:['gs1','upu'],records:['到达扫描','换装交接','再发运记录']},desthub:{sources:['gs1','upu'],records:['干线到达','区域分流','交接记录']},
   destsort:{sources:['upu','gs1'],records:['到件扫描','分拨路由','出车记录']},station:{sources:['upu','gs1'],records:['到站扫描','分件结果','配送交接']},delivery:{sources:['gs1','scor'],records:['派送记录','签收／回单','异常记录']},close:{sources:['scor','cscmp'],records:['计费明细','对账单','售后状态']},
   'r-request':{sources:['scor','gs1'],records:['售后申请','审核结果','逆向运单']},'r-book':{sources:['scor','gs1'],records:['取件地址','预约时窗','回寄标签']},'r-pick':{sources:['gs1','upu'],records:['揽收扫描','货物状态','交接凭证']},
-  'r-transit':{sources:['scor','gs1'],records:['回流路由','运输节点','异常记录']},'r-receive':{sources:['scor','gs1'],records:['到货签收','数量核对','差异登记']},'r-inspect':{sources:['scor'],records:['检测结果','分级结论','处置建议']},'r-close':{sources:['scor','cscmp'],records:['退款／换货','处置记录','费用结算']},
-  cancelled:{sources:['scor','gs1']},interceptRequest:{sources:['ups','gs1']},interceptExecute:{sources:['ups','gs1']},returnMove:{sources:['ups','upureturn']},returnReceive:{sources:['scor','upureturn']},returnClose:{sources:['scor','cscmp']},replan:{sources:['ups','gs1']},attempt:{sources:['fedex','gs1']},failedAttempt:{sources:['fedex','upureturn']},redelivery:{sources:['fedex','gs1']},refusal:{sources:['fedex','upureturn']},pickupNotice:{sources:['ups','fedex']},pickupSign:{sources:['ups','gs1']},unclaimedReturn:{sources:['upureturn','fedex']}
+  'r-intake':{sources:['upu','gs1']},'r-sort':{sources:['upu','gs1']},'r-linehaul':{sources:['gs1']},'r-relay':{sources:['gs1']},'r-destination':{sources:['upu','gs1']},'r-dropoff':{sources:['gs1']},'r-direct':{sources:['gs1']},'r-receive':{sources:['scor','gs1'],records:['到货签收','数量核对','差异登记']},'r-inspect':{sources:['scor'],records:['检测结果','分级结论','处置建议']},'r-close':{sources:['scor','cscmp'],records:['退款／换货','处置记录','费用结算']},
+  cancelled:{sources:['fedexCancel','usps']},interceptRequest:{sources:['ups','gs1']},interceptExecute:{sources:['ups','gs1']},interceptFailed:{sources:['ups']},returnClose:{sources:['scor','cscmp']},replan:{sources:['ups','gs1']},attempt:{sources:['fedex','gs1']},failedAttempt:{sources:['fedex','upureturn']},redelivery:{sources:['fedex','gs1']},refusal:{sources:['fedex','upureturn']},pickupNotice:{sources:['ups','fedex']},pickupSign:{sources:['ups','gs1']},unclaimedReturn:{sources:['upureturn','fedex']}
 };
 const EXPLAIN={
   order:'这一节点定义的是运输需求的形成和物流服务的受理。发起人可能先完成交易、采购、调拨或寄件申请，再向平台、商家或承运商提交物品、收发地址、时效与服务要求。物流委托和运单可以在这里生成，但实物尚未完成交接；是否已经付款，也不等于运输已经开始。',
@@ -296,15 +314,14 @@ const EXPLAIN={
   'r-request':'逆向链路从退货、返修、回收、召回或拒收等需求开始。申请方说明原因、物品及原订单信息，受理方判断是否符合规则，并确定返回目标地点及服务方式。逆向委托受理后，实物仍可能留在申请方手中。',
   'r-book':'受理之后，双方确定上门取件、门店交件或自行寄回等方式，并约定地址、时间窗口和标签。预约只是对逆向运输的准备；承运方实际收到货物时才进入揽收和运输。',
   'r-pick':'退回货物从申请方转交给承运方。取件或交件现场通常会核对件数、外包装、标签并扫描接收。对退货商品的质量结论一般应由后续接收或检测作业给出，揽收本身不等于退货审核通过。',
-  'r-transit':'货物经逆向网络送往商家仓、维修点、回收中心或其他指定地点。它可能复用正向网络的网点、分拣和干线，也可能走专门的回收线路；实际节点取决于网络结构和服务产品。',
-  'r-receive':'目的地接收方核对到货、数量、身份和可见状态，并登记差异。此时可以确认货物是否到达指定地点，但退款、换货、维修或回收结论往往还要等待检验和业务规则处理。',
+  'r-receive':'承运方在指定地点交付后，目的地收货方核对到货、数量和可见状态，并登记差异。运输交付记录与仓库收货确认是两个不同的事件；退款、换货或维修仍需后续业务处理。',
   'r-inspect':'接收方依据逆向目的进行检验、分类和评估。例如退货可核对商品状态，返修可诊断故障，回收可分级估值。检验结果决定后续是重新入库、维修、换货、二次销售、回收利用或报废。',
   'r-close':'逆向实物完成处置后，相关方处理退款、换货、维修反馈、补货或费用结算，并同步订单与售后状态。闭环既包括实物去向，也包括资金和信息的结束状态。'
 };
 function renderFlow(){
   const list=currentStages();
   if(!list.some(s=>s.id===focus))focus=list[0]?.id||'';
-  $('flowTitle').textContent=(direction==='reverse'?'逆向订单 · ':'正向履约 · ')+SCENES[scene]+(scene==='b2b'&&direction==='forward'?' · '+(route==='direct'?'整车直达':'零担网络'):'')+(direction==='forward'&&branch!=='normal'?' · '+BRANCHES[branch].label:'');
+  $('flowTitle').textContent=(direction==='reverse'?'逆向订单 · ':'正向履约 · ')+SCENES[scene]+(scene==='b2b'&&direction==='forward'?' · '+(route==='direct'?'整车直达':'零担网络'):'')+(branch!=='normal'?' · '+BRANCHES[branch].label:'');
   $('flowCount').textContent=`${list.length} 个节点 · 按时间从左向右 ↔`;
   $('flow').innerHTML=list.map((s,i)=>`<article class="flow-card ${focus===s.id?'active':''} ${direction==='reverse'?'reverse':''} ${s.branchType||''}" data-node="${s.id}" tabindex="0" role="button" aria-pressed="${focus===s.id}" aria-label="点击查看${ESC(s.title)}详情"><div class="card-head"><img src="assets/icons-3d/${s.icon}.png" width="88" height="88" loading="lazy" decoding="async" alt=""><div class="card-title"><h3>${ESC(s.title)}</h3><p>${ESC(s.caption)}</p></div></div><div class="card-number">${String(i+1).padStart(2,'0')} / ${String(list.length).padStart(2,'0')}</div><ol class="mini-flow">${steps(s).map((v,j)=>`<li><span class="num">${j+1}</span><span class="step">${ESC(v)}</span></li>`).join('')}</ol></article>${i<list.length-1?`<span class="flow-connector ${list[i+1].branchType==='return'?'return-link':''}" aria-hidden="true"><span>${list[i+1].branchType==='return'?'↶':'›'}</span></span>`:''}`).join('');
   layoutFlow();updateFlowNav();
@@ -330,7 +347,6 @@ function updateFlowNav(){
   const box=$('flowScroll'),max=Math.max(0,box.scrollWidth-box.clientWidth);
   const canLeft=box.scrollLeft>4,canRight=max-box.scrollLeft>4;
   $('prevNode').hidden=!canLeft;$('nextNode').hidden=!canRight;
-  $('edgeLeft').classList.toggle('visible',canLeft);$('edgeRight').classList.toggle('visible',canRight);
 }
 function centerCard(id,behavior='smooth'){
   const box=$('flowScroll'),card=[...$('flow').querySelectorAll('.flow-card')].find(x=>x.dataset.node===id);
@@ -342,9 +358,9 @@ function centerCard(id,behavior='smooth'){
 }
 function renderDetail(){
   const s=currentStages().find(x=>x.id===focus)||currentStages()[0];if(!s)return;
-  const ev=EVIDENCE[s.id]||{sources:['gs1']},detail=$('detail'),wasReady=detail.dataset.ready==='true';
+  const ev=EVIDENCE[s.id];if(!ev)throw new Error('缺少环节依据: '+s.id);const detail=$('detail'),wasReady=detail.dataset.ready==='true';
   detail.getAnimations().forEach(a=>a.cancel());
-  detail.innerHTML=`<div class="detail-image"><img src="assets/icons-3d/${s.icon}.png" width="330" height="330" decoding="async" alt="${ESC(s.title)}环节示意"></div><div class="detail-body"><div class="detail-head"><span>${direction==='reverse'?'逆向订单':'正向履约'} · ${ESC(SCENES[scene])}${direction==='forward'&&branch!=='normal'?' · '+ESC(BRANCHES[branch].label):''}</span><h2>${ESC(s.title)}</h2><em>${ESC(s.caption)}</em></div><div class="detail-grid"><section class="detail-box"><b>定义与边界</b><p>${ESC(EXPLAIN[s.id]||s.detail)}</p></section><section class="detail-box"><b>环节内流程</b><ol class="detail-process">${steps(s).map((v,i)=>`<li><span class="process-num">${i+1}</span><span>${ESC(v)}</span></li>`).join('')}</ol>${EXPLAIN[s.id]?`<p style="margin-top:12px">${ESC(s.detail)}</p>`:``}</section></div><div class="detail-source">资料依据：${ev.sources.map(key=>`<a href="${SOURCE_LINKS[key].url}" target="_blank" rel="noopener noreferrer">${ESC(SOURCE_LINKS[key].name)} ↗</a>`).join('')}<span>实际作业以具体服务产品与企业网络为准。</span></div></div>`;
+  detail.innerHTML=`<div class="detail-image"><img src="assets/icons-3d/${s.icon}.png" width="330" height="330" decoding="async" alt="${ESC(s.title)}环节示意"></div><div class="detail-body"><div class="detail-head"><span>${direction==='reverse'?'逆向订单':'正向履约'} · ${ESC(SCENES[scene])}${branch!=='normal'?' · '+ESC(BRANCHES[branch].label):''}</span><h2>${ESC(s.title)}</h2><em>${ESC(s.caption)}</em></div><div class="detail-grid"><section class="detail-box"><b>定义与边界</b><p>${ESC(EXPLAIN[s.id]||s.detail)}</p></section><section class="detail-box"><b>环节内流程</b><ol class="detail-process">${steps(s).map((v,i)=>`<li><span class="process-num">${i+1}</span><span>${ESC(v)}</span></li>`).join('')}</ol>${EXPLAIN[s.id]?`<p style="margin-top:12px">${ESC(s.detail)}</p>`:``}</section></div><div class="detail-source">资料依据：${ev.sources.map(key=>`<a href="${SOURCE_LINKS[key].url}" target="_blank" rel="noopener noreferrer">${ESC(SOURCE_LINKS[key].name)} ↗</a>`).join('')}<span>实际作业以具体服务产品与企业网络为准。</span></div></div>`;
   detail.dataset.ready='true';
   if(wasReady&&!matchMedia('(prefers-reduced-motion: reduce)').matches){detail.animate([{opacity:.4,filter:'blur(5px)',transform:'translateY(9px)'},{opacity:1,filter:'blur(0)',transform:'translateY(0)'}],{duration:340,easing:'cubic-bezier(.2,.8,.2,1)'})}
 }
@@ -361,11 +377,10 @@ function setFocus(id,center=false){if(focus!==id){focus=id;document.querySelecto
 function stepNode(delta){const box=$('flowScroll'),card=$('flow').querySelector('.flow-card');if(!card)return;const gap=parseFloat(getComputedStyle($('flow')).getPropertyValue('--node-gap'))||30;const max=Math.max(0,box.scrollWidth-box.clientWidth);box.scrollTo({left:Math.max(0,Math.min(max,box.scrollLeft+delta*(card.getBoundingClientRect().width+gap))),behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'})}
 function activate(el){
   if(el?.dataset.scene&&el.dataset.scene!==scene)transitionTo(()=>{scene=el.dataset.scene},false);
-  else if(el?.dataset.direction&&el.dataset.direction!==direction)transitionTo(()=>{direction=el.dataset.direction;branch='normal';focus=direction==='reverse'?'r-request':'pickup'},true);
   else if(el?.dataset.route&&el.dataset.route!==route)transitionTo(()=>{route=el.dataset.route},false);
-  else if(el?.dataset.branch&&el.dataset.branch!==branch&&direction==='forward'){
+  else if(el?.dataset.branch&&el.dataset.branch!==branch){
     const next=el.dataset.branch;
-    transitionTo(()=>{branch=next;focus={normal:'pickup',cancel:'cancelled',intercept:'interceptRequest',reroute:'replan',failed:'failedAttempt',refuse:'refusal',pickupPoint:'pickupNotice',unclaimed:'unclaimedReturn'}[next]},false);
+    transitionTo(()=>{branch=next;direction=next==='return'?'reverse':'forward';focus={normal:'pickup',return:'r-request',cancel:'cancelled',intercept:'interceptRequest',interceptFail:'interceptFailed',reroute:'replan',failed:'failedAttempt',refuse:'refusal',pickupPoint:'pickupNotice',unclaimed:'unclaimedReturn'}[next]},false);
     if(!matchMedia('(prefers-reduced-motion: reduce)').matches)$('branchContext').animate([{opacity:.2,transform:'translateY(-5px)'},{opacity:1,transform:'translateY(0)'}],{duration:300,easing:'ease-out'});
     setTimeout(()=>centerCard(focus),100);
   }
@@ -383,12 +398,12 @@ function nudgeFromRightmost(card){
   box.scrollTo({left:box.scrollLeft+step,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});
 }
 document.addEventListener('pointerover',e=>{if(e.pointerType!=='mouse')return;const card=e.target.closest?.('[data-node]');if(card&&!card.contains(e.relatedTarget))nudgeFromRightmost(card)});
-document.addEventListener('click',e=>{activate(e.target.closest?.('[data-scene],[data-route],[data-direction],[data-branch]'));const card=e.target.closest?.('[data-node]');if(card)setFocus(card.dataset.node)});
+document.addEventListener('click',e=>{activate(e.target.closest?.('[data-scene],[data-route],[data-branch]'));const card=e.target.closest?.('[data-node]');if(card)setFocus(card.dataset.node)});
 document.addEventListener('keydown',e=>{const card=e.target.closest?.('[data-node]');if(card&&(e.key==='Enter'||e.key===' ')){e.preventDefault();setFocus(card.dataset.node)}});
 $('prevNode').addEventListener('click',()=>stepNode(-1));$('nextNode').addEventListener('click',()=>stepNode(1));
 $('flowScroll').addEventListener('scroll',updateFlowNav,{passive:true});
 new ResizeObserver(()=>{layoutFlow();updateFlowNav()}).observe($('flowScroll'));
-let previousFocus=null;function openModal(kind){previousFocus=document.activeElement;if(kind==='refs'){$('modalTitle').textContent='参考文档';$('modalBody').innerHTML='<p>本图综合行业流程资料形成通用模型。不同企业、服务产品和运输网络可增减实际节点。</p>'+SOURCES.map(([name,desc,url])=>`<div class="reference"><strong><a href="${url}" target="_blank" rel="noopener noreferrer">${ESC(name)} ↗</a></strong><span>${ESC(desc)}</span></div>`).join('')}else{$('modalTitle').textContent='读图说明';$('modalBody').innerHTML='<p>左侧先选正向或逆向，再选 C2C、C2B、B2C、B2B 场景。B2B 正向可在整车直达和零担网络间切换。</p><p>主图按时间从左到右展示路径；实体回流会以绿色卡片和回转箭头提示。正向流程上方的分支按钮需点击切换取消、拦截、改址、未妥投、拒收、转自提和超期未取。拦截仅为申请，执行结果取决于货物状态与服务规则。</p><p>每张卡片内按时间顺序列出作业；点击卡片后更新下方详情。可用两侧按钮或键盘左右箭头逐节点浏览。</p><p>本图将同一地点连续作业合并：业务订单与物流委托、站点与配送交接、末端交付与签收。物流委托生成与实物揽收仍是不同节点。</p>'}$('modalLayer').classList.add('open');$('modalLayer').setAttribute('aria-hidden','false');$('closeModal').focus()}
+let previousFocus=null;function openModal(kind){previousFocus=document.activeElement;if(kind==='refs'){$('modalTitle').textContent='参考文档';$('modalBody').innerHTML='<p>本图将 GS1 退货交接与运输、UPU 网络收寄分拣作业以及承运商异常处理规则组合成行业示意。返运路径是可能的组织方式，网点、分拣和中转不代表每票必经。不同企业、服务产品和运输网络可增减实际节点。</p>'+SOURCES.map(([name,desc,url])=>`<div class="reference"><strong><a href="${url}" target="_blank" rel="noopener noreferrer">${ESC(name)} ↗</a></strong><span>${ESC(desc)}</span></div>`).join('')}else{$('modalTitle').textContent='读图说明';$('modalBody').innerHTML='<p>左侧选择 C2C、C2B、B2C、B2B 业务场景。主图上方选择常规交付、主动退回或具体异常分支；B2B 以及返运分支还可以选择直达或网络路径。</p><p>主图按时间从左到右展示路径；绿色卡片和回转箭头提示实物回流。拦截仅为申请，执行结果取决于货物状态与服务规则。网络返运的网点、分拣和中转是可选的典型作业，不代表所有货物必经。</p><p>每张卡片内按时间顺序列出作业；点击卡片后更新下方详情。可用两侧按钮或键盘左右箭头逐节点浏览。</p><p>本图将同一地点连续作业合并：业务订单与物流委托、站点与配送交接、末端交付与签收。物流委托生成与实物揽收仍是不同节点。</p>'}$('modalLayer').classList.add('open');$('modalLayer').setAttribute('aria-hidden','false');$('closeModal').focus()}
 function closeModal(){$('modalLayer').classList.remove('open');$('modalLayer').setAttribute('aria-hidden','true');previousFocus?.focus()}
 $('guideBtn').onclick=()=>openModal('guide');$('refsBtn').onclick=()=>openModal('refs');$('closeModal').onclick=closeModal;$('modalLayer').addEventListener('click',e=>{if(e.target===$('modalLayer'))closeModal()});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('modalLayer').classList.contains('open')){closeModal();return}if($('modalLayer').classList.contains('open')||e.target.matches('input,textarea,select,[contenteditable="true"]'))return;if(e.key==='ArrowRight'||e.key==='ArrowLeft'){e.preventDefault();stepNode(e.key==='ArrowRight'?1:-1)}});render();
 </script>
