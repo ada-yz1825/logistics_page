@@ -2,12 +2,13 @@
 
 ## 在线访问与自动发布
 
-- 原流程图：https://ada-yz1825.github.io/logistics_page/
-- 地图版：https://ada-yz1825.github.io/logistics_page/map.html
+- 地图版首页：https://ada-yz1825.github.io/logistics_page/
+- 地图版兼容地址：https://ada-yz1825.github.io/logistics_page/map.html
+- 原流程图仅保留在仓库的 `index.html`，不发布到网站。
 
 推送到 `main` 后，`.github/workflows/pages.yml` 自动检查页面及素材、打包静态文件并发布到 GitHub Pages。也可在 GitHub 的 Actions 页面选择 `Publish logistics website`，点击 `Run workflow` 手动发布。发布状态和记录见 https://github.com/ada-yz1825/logistics_page/actions 。
 
-本地可运行 `python3 scripts/validate_site.py` 检查文件引用。仓库的 Settings → Pages → Source 应设为 GitHub Actions。发布内容包含两份 HTML、`assets/` 和 `docs/`，无需安装前端依赖。
+本地可运行 `python3 scripts/validate_site.py` 检查文件引用，再运行 `python3 scripts/build_site.py` 准备发布目录。仓库的 Settings → Pages → Source 应设为 GitHub Actions。发布内容仅包含地图网页及其所需素材；首页和 `map.html` 都显示地图，线上导航不提供原流程图入口。无需安装前端依赖。
 
 面向物流新同事的静态交互网页，按 C2C、C2B、B2C、B2B 展示发运、业务回寄与异常退回的示例流程。
 

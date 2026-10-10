@@ -26,11 +26,7 @@ jobs:
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
       - name: Prepare static website
-        run: |
-          mkdir -p _site
-          cp index.html map.html _site/
-          cp -R assets docs _site/
-          touch _site/.nojekyll
+        run: python3 scripts/build_site.py
       - name: Upload website
         uses: actions/upload-pages-artifact@v4
         with:
