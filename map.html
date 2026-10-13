@@ -4,31 +4,32 @@
 <body>
 <header class="topbar"><a class="brand" href="map.html"><img class="brand-logo" src="assets/brand-logo.png" width="48" height="48" alt=""><span><h1>物流行业全链路流程图</h1></span></a><nav><a href="index.html">原流程图 ↗</a><button id="helpBtn">使用说明</button><button id="sourcesBtn">资料依据</button></nav></header>
 <div class="workspace">
-<aside class="sidebar" aria-label="链路选择"><div class="rail-head"><h1>选单据，看货流</h1></div>
-<section><h2><span>01</span> 单据范围</h2><div id="documents" class="document-list"></div></section>
-<section id="modeControls"><h2><span>02</span> 物流模式 <small id="modeCount"></small></h2><label class="sr-only" for="modeSelect">物流模式</label><select id="modeSelect"></select><p class="selection-hint" id="modeHint"></p></section>
+<aside class="sidebar" aria-label="链路选择"><div class="rail-head"><h1>选场景，看服务</h1></div>
+<section><h2><span>01</span> 业务场景</h2><div id="documents" class="document-list"></div></section>
+<section id="modeControls"><h2><span>02</span> 服务模式 <small id="modeCount"></small></h2><div id="modeList" class="mode-list" role="group" aria-label="服务模式"></div><p class="selection-hint" id="modeHint"></p></section>
 <section id="scenarioControls"><h2><span>03</span> 流程情景</h2><div id="scenarios" class="scenario-list"></div></section>
 <section class="rail-note selection-guide" aria-label="当前选择的业务介绍" aria-live="polite"><b>当前选择说明</b><div id="selectionGuide"></div></section>
 <div class="rail-foot"><span id="coverage"></span><button id="allNodesBtn">认识全部设施 →</button></div>
 </aside>
 <main>
 <section class="map-shell" aria-label="抽象物流地图">
-<div class="map-canvas" id="mapCanvas"><svg id="network" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 5133 3009" aria-label="物流设施和选中链路" role="group">
+<div class="map-canvas" id="mapCanvas"><svg id="network" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 5133 3009" aria-label="物流设施、资源方和选中链路" role="group">
 <defs>
 <filter id="sceneShadow" x="-50%" y="-50%" width="200%" height="220%"><feDropShadow dx="0" dy="8" stdDeviation="5" flood-color="#183e62" flood-opacity=".13"/></filter>
 <filter id="routeGlow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#1cafab" flood-opacity=".22"/></filter>
 <marker id="arrow-main" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto"><path d="M0 0L5 2.5L0 5" fill="#069b9f"/></marker><marker id="arrow-back" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto"><path d="M0 0L5 2.5L0 5" fill="#d98b39"/></marker><marker id="arrow-parts" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto"><path d="M0 0L5 2.5L0 5" fill="#4877bb"/></marker>
 </defs><g id="terrain" aria-hidden="true"></g>
-<g id="baseEdges" aria-hidden="true"></g><g id="selectedRoads" aria-hidden="true"></g><g id="activeEdges" aria-hidden="true"></g><g id="nodes"></g><g id="routeArrows" aria-hidden="true"></g></svg>
+<g id="baseEdges" aria-hidden="true"></g><g id="selectedRoads" aria-hidden="true"></g><g id="activeEdges" aria-hidden="true"></g><g id="nodes"></g><g id="routeArrows" aria-hidden="true"></g><g id="routeLabels" aria-hidden="true"></g></svg>
 <div class="map-legend"><span><i class="legend-main"></i>主货流</span><span><i class="legend-back"></i>退回 / 逆向</span><span><i class="legend-parts"></i>备件辅助货流</span></div>
-<aside class="chain-overlay" aria-label="链路介绍"><h3>链路介绍</h3><p id="guideText"></p><p id="scenarioText" class="scenario-note"></p><div id="sourceLinks" class="source-links"></div></aside>
-<aside class="explanation location-overlay" aria-label="当前地点介绍" aria-live="polite"><div class="node-detail"><h3 id="nodeTitle"></h3><p id="nodeText"></p><p id="nodeGuide" class="node-guide"></p><div id="handoff" class="handoff"></div></div></aside>
+<div id="resourceCoordinator" class="resource-coordinator" aria-live="polite"></div>
+<aside class="chain-overlay" aria-label="链路介绍"><h3>链路介绍</h3><p id="guideText"></p><div id="serviceDetails"></div><p id="scenarioText" class="scenario-note"></p><div id="sourceLinks" class="source-links"></div></aside>
+<aside class="explanation location-overlay" aria-label="当前地点介绍" aria-live="polite"><div class="node-detail"><h3 id="nodeTitle"></h3><p id="nodeResource" class="node-resource"></p><p id="nodeText"></p><p id="nodeGuide" class="node-guide"></p><div id="handoff" class="handoff"></div><div id="nodeSources" class="source-links"></div></div></aside>
 <div class="map-navigation" aria-label="地图视野控制"><div class="navigation-presets"><button id="fitBtn" title="聚焦当前链路">聚焦链路</button><button id="overviewBtn" title="查看全部设施">全网</button></div><div class="zoom-control"><button id="zoomOut" aria-label="缩小地图">−</button><input id="zoomSlider" type="range" min="0" max="100" step="1" aria-label="地图缩放" title="拖动调整地图缩放"><button id="zoomIn" aria-label="放大地图">＋</button></div></div>
 <div class="mini-map" aria-hidden="true"><svg id="minimap" viewBox="0 0 5133 3009"></svg><span>全网位置</span></div>
 </div>
 </section>
 <section class="journey"><div class="section-head"><h3>沿链路逐站看</h3><button id="replayBtn">▶ 逐站演示</button></div><div id="journeySteps" class="journey-steps" aria-label="按经过顺序查看节点"></div></section>
-<footer>立体场景为教学示意 · 资料核对 2026-10-10 <span>采购、销售、服务单据与运输运单分别理解。</span></footer>
+<footer>立体场景为教学示意 · 资料核对 2026-10-13 <span>资源方按职能标注，企业案例与地区条款分别说明。</span></footer>
 </main></div>
 <dialog id="infoDialog"><div class="dialog-head"><h2 id="dialogTitle"></h2><button id="closeDialog" aria-label="关闭">×</button></div><div id="dialogBody"></div></dialog>
 <script src="assets/map/data.js"></script><script src="assets/map/landscape.js"></script><script src="assets/map/app.js"></script>

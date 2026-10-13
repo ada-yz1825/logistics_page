@@ -1,6 +1,6 @@
 'use strict';
 (()=>{
-const {nodes:N,modes:M,documents:D,sources:S}=window.LOGISTICS_MAP_DATA;
+const {nodes:N,modes:M,scenes:D,sources:S}=window.LOGISTICS_MAP_DATA;
 const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const NS='http://www.w3.org/2000/svg';
@@ -9,11 +9,12 @@ const project=(x,y)=>({x:(1.12*x+220)*1.18,y:(.98*y+160)*1.18});
 const SCENE_ASSETS={factory:'assets/map/scenes/factory.png',home:'assets/map/scenes/residence.png',store:'assets/map/scenes/shop.png',port:'assets/map/scenes/seaport.png',rail:'assets/map/scenes/rail.png',air:'assets/map/scenes/airport.png',warehouse:'assets/icons-3d/warehouse.png',station:'assets/icons-3d/station.png',sort:'assets/icons-3d/hub.png',terminal:'assets/icons-3d/hub.png',service:'assets/icons-3d/station.png'};
 function sceneAsset(id){return id==='repair'?'assets/map/scenes/repair.png':SCENE_ASSETS[N[id].icon];}
 
-const sceneNames={normal:'常规流转',cancel:'交接前取消',intercept:'拦截退回',interceptFail:'拦截未成功',reroute:'改址交付',redelivery:'未妥投再投',refuse:'拒收退回',pickup:'转自提',unclaimed:'超期未取退回',damage:'货损待处理',delay:'运输延误',discrepancy:'到货差异',customsHold:'通关待处理'};
-let doc='b2c',modeId='platform',scenario='normal',inspected=null,selectedStep=0,replay=null,drag=null,view={x:0,y:0,w:WORLD.w,h:WORLD.h},viewKind='fit';
+const sceneNames={normal:'常规流转',cancel:'交接前取消',intercept:'拦截退回',interceptFail:'拦截未成功',reroute:'改址交付',redelivery:'未妥投再投',refuse:'拒收退回',pickup:'转自提',unclaimed:'超期未取退回',damage:'货损待处理',delay:'运输延误',discrepancy:'到货差异',customsHold:'通关待处理',restock:'检验合格后入库',vendorReturn:'按指令退回供货方',repairedReturn:'维修完成后返送'};
+let doc='supplychain',modeId='warehouse',scenario='normal',inspected=null,selectedStep=0,replay=null,drag=null,view={x:0,y:0,w:WORLD.w,h:WORLD.h},viewKind='fit';
 const mode=()=>M.find(m=>m.id===modeId);
 const reducedMotion=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
 let cameraFrame=0,wheelFrame=0,wheelDelta=0,wheelAnchor=null,lastRenderKey='',hasRendered=false;
+let serviceTab='capabilities';
 const transitionAnimations=new Set();
 function transition(element,frames,options){const animation=element.animate(frames,options);transitionAnimations.add(animation);const release=()=>transitionAnimations.delete(animation);animation.onfinish=release;animation.oncancel=release;}
 function cancelTransitions(){for(const animation of transitionAnimations)animation.cancel();transitionAnimations.clear();}
@@ -33,13 +34,14 @@ function animateChange(){
  for(const element of [$('selectionGuide'),document.querySelector('.chain-overlay'),document.querySelector('.explanation'),$('journeySteps')]){element.getAnimations().forEach(a=>a.cancel());transition(element,[{opacity:.3,transform:'translateY(6px)'},{opacity:1,transform:'translateY(0)'}],{duration:280,easing:'ease-out'});}
 }
 
-function available(m){let a=['normal','cancel'];if(!m.vehicle)a.push('damage','delay');if(m.parcel)a.push('intercept','interceptFail','reroute','redelivery','refuse','pickup','unclaimed');if(['warehouse','factory','service','store'].includes(N[m.path.at(-1)].icon)&&!m.vehicle)a.push('discrepancy');if(m.crossborder)a.push('customsHold');return a;}
+function available(m){return m.scenarios;}
 function currentRoute(m=mode(),s=scenario){
  if(doc==='overview'&&arguments.length===0)return {path:[],pivot:Infinity,note:'',hold:false,aux:[]};
  let path=[...m.path],pivot=m.reverse?0:Infinity,note='',hold=false;
  if(s==='cancel'){path=path.slice(0,1);note='仅展示承运交接前取消：核对货物仍在原发运地点，撤销相关任务。取消单据本身不会产生一条实物运输线。';hold=true;}
  if(s==='damage'||s==='delay'){
-  const stop=Math.max(0,m.path.findIndex((id,i)=>i>0&&['sort','terminal','station','port','rail','air'].includes(N[id].icon)));
+  const found=m.path.findIndex((id,i)=>i>0&&['sort','terminal','station','port','rail','air'].includes(N[id].icon));
+  const stop=found>=0?found:Math.min(1,m.path.length-1);
   path=m.path.slice(0,stop+1);note=`这里示例货物停留在“${N[path.at(-1)].label}”：${s==='damage'?'记录货损、保留交接信息，等待责任核查与处置指令。':'核查运输或班次衔接原因，等待后续安排。'}异常名称不能单独确定实际停留地点；后续退回、补发或继续发运另行确认。`;hold=true;
  }
  if(s==='intercept'){
@@ -61,25 +63,31 @@ function currentRoute(m=mode(),s=scenario){
  }
  if(s==='discrepancy'){note='货物已到接收节点，发现数量、包装或单货差异，登记后等待复核与业务决定。此时不能自动视为已合格入库，也不自动产生退货运输。';hold=true;}
  if(s==='customsHold'){
-  const importing=['bondedstock','directimport'].includes(m.id);const end=path.indexOf(importing?'portA':'portB');path=path.slice(0,end+1);
+  const end=path.indexOf(m.customsNode);if(end>=0)path=path.slice(0,end+1);
   note='本例示意货物到达目的侧口岸后，因申报、查验或其他监管事项等待处理。待放行不等于必定退运；具体监管环节与时间按实际办理确认。';hold=true;
  }
+ if(['intercept','interceptFail','reroute','redelivery','refuse','pickup','unclaimed'].includes(s))note+=' 本情景借助 UPS / FedEx 的美国或英国公开服务说明举例；适用资格、执行方式和费用须按实际承运产品确认。';
+ if(s==='restock'){path.push('fulfill');note='示例假定处理中心已检查并确认商品符合重新入库要求，按业务指令交接至履约仓。退款决定、检验结果和库存接收是不同状态。';}
+ if(s==='vendorReturn'){path.push('factory');note='示例假定退货检查后，已确认退回供货方的业务指令，指定接收方安排收货；接收地址不一定是原发货仓。';}
+ if(s==='repairedReturn'){path=['repair','origin','sortA','sortB','station','consumer'];pivot=Infinity;note='示例假定维修业务已完成且返送指令已确认，再按寄递网络组织交付。它是维修之后的新发运任务，不把待修品送达视为已经修好。';}
  return {path,pivot,note,hold,aux:s==='normal'?(m.aux||[]):[]};
 }
 function el(tag,attrs={}){const e=document.createElementNS(NS,tag);for(const[k,v]of Object.entries(attrs))e.setAttribute(k,v);return e;}
-function label(id){return (doc==='overview'?null:mode().labels?.[id])||N[id].label;}
+function label(id){return (doc==='overview'||scenario==='repairedReturn'?null:mode().labels?.[id])||N[id].label;}
+// Two domestic catchments share an intercity transport corridor; ports face the coast.
+const GEOGRAPHY={shore:2060,riverY:1490,height:2220};
 const PLACES={
- supplier:[160,160],supplier2:[160,460],factory:[440,160],material:[440,460],bulk:[720,160],merchant:[720,460],cold:[1000,160],regional:[1280,160],fulfill:[1280,460],fulfill2:[1000,460],front:[1560,460],store:[1560,160],business:[1840,160],
- person:[160,760],origin:[440,760],sortA:[720,760],freightA:[440,1060],crossdock:[1000,760],sortB:[1280,760],station:[1560,760],consumer:[1840,760],pickup:[1560,1060],newAddress:[1840,1060],freightB:[1000,1060],railA:[720,1060],railB:[1280,1060],airA:[1560,1360],portA:[1840,1360],bonded:[1840,460],
- reuse:[160,1360],parts:[440,1360],repair:[720,1360],returns:[1000,1360],recycle:[1280,1360],
- foreignBusiness:[2900,460],portB:[2620,1360],foreignFactory:[2900,1060],overseas:[2900,760],foreignConsumer:[3180,460]
+ supplier:[150,160],supplier2:[150,450],factory:[440,160],material:[440,450],bulk:[740,160],merchant:[740,450],
+ fulfill2:[1040,160],regional:[1340,160],store:[1650,160],business:[1910,160],fulfill:[1050,450],cold:[1360,450],front:[1670,450],bonded:[1930,450],
+ person:[150,770],origin:[440,750],sortA:[740,750],crossdock:[1050,800],sortB:[1360,790],station:[1650,800],consumer:[1920,780],
+ freightA:[440,1150],airA:[740,1170],freightB:[1050,1150],airC:[1360,1180],railA:[150,1160],railB:[1670,1320],
+ pickup:[1650,1060],newAddress:[1930,1010],portC:[1940,1310],
+ reuse:[150,1770],parts:[440,1740],repair:[740,1770],returns:[1060,1750],recycle:[1370,1790],portA:[1940,1770],cfsA:[1930,2090],
+ foreignBusiness:[2880,170],foreignConsumer:[3190,190],airB:[2630,480],foreignStation:[3180,580],overseas:[2900,980],
+ foreignFactory:[3160,1420],portB:[2620,1770],cfsB:[2620,2090]
 };
-// Facilities retain their geographic role while following the main business chains.
-const OFFSETS={supplier:[-15,10],supplier2:[25,-15],factory:[30,-10],material:[-10,18],bulk:[15,20],merchant:[-25,-12],cold:[-20,-15],regional:[25,12],fulfill:[-30,-20],fulfill2:[10,20],front:[25,15],store:[-20,-12],business:[15,20],person:[-15,15],origin:[25,-20],sortA:[-20,10],crossdock:[10,-20],sortB:[-25,-10],station:[20,15],consumer:[-10,-20],pickup:[-25,20],newAddress:[25,-10],freightA:[-20,-12],freightB:[20,15],reuse:[20,-15],parts:[-25,10],repair:[20,-15],returns:[-20,20],recycle:[25,-10],overseas:[-30,20],foreignFactory:[20,-10],foreignConsumer:[-20,10],foreignBusiness:[25,-15]};
-for(const[id,offset]of Object.entries(OFFSETS)){PLACES[id][0]+=offset[0];PLACES[id][1]+=offset[1];}
-Object.assign(PLACES,{sortA:[720,690],crossdock:[940,730],sortB:[1230,820],station:[1560,850],consumer:[1860,830],returns:[1090,1320],recycle:[1350,1410],foreignConsumer:[3210,490],overseas:[2870,800]});
 // Scale represents relative footprint and network role, rather than a measured building size.
-const FACILITY_SCALE={factory:1.3,bulk:1.22,cold:1.1,regional:1.22,fulfill:1.18,fulfill2:1.1,sortA:1.3,sortB:1.3,crossdock:1.16,freightA:1.15,freightB:1.15,railA:1.25,railB:1.25,airA:1.35,portA:1.35,portB:1.35,foreignFactory:1.3,bonded:1.15,overseas:1.15,returns:1.12,recycle:1.16,person:.78,consumer:.8,newAddress:.8,foreignConsumer:.8,pickup:.75,station:.88,origin:.92,store:.92,front:.9,parts:.88};
+const FACILITY_SCALE={factory:1.3,bulk:1.22,cold:1.1,regional:1.22,fulfill:1.18,fulfill2:1.1,sortA:1.3,sortB:1.3,crossdock:1.16,freightA:1.15,freightB:1.15,railA:1.25,railB:1.25,airA:1.35,airB:1.35,airC:1.2,portC:1.2,portA:1.35,portB:1.35,foreignFactory:1.3,bonded:1.15,overseas:1.15,returns:1.12,recycle:1.16,person:.78,consumer:.8,newAddress:.8,foreignConsumer:.8,pickup:.75,station:.88,origin:.92,store:.92,front:.9,parts:.88};
 const facilitySize=id=>FACILITY_SCALE[id]||1;
 const plateY=id=>69*facilitySize(id);
 const ROAD_CACHE=new Map(),ROAD_POINTS=[],ROAD_GRAPH=[],NODE_PORTS={},USED_ROADS=new Map();
@@ -120,18 +128,39 @@ function smoothPath(points){
  return d+` L${points.at(-1).x},${points.at(-1).y}`;
 }
 const pathPoints=points=>points.map(([x,y],i)=>{const p=project(x,y);return `${i?'L':'M'}${p.x},${p.y}`;}).join(' ');
-function transport(a,b){if([a,b].includes('airA')&&[a,b].includes('portB'))return 'air';if([a,b].includes('portA')&&[a,b].includes('portB'))return 'sea';if([a,b].includes('railA')&&[a,b].includes('railB'))return 'rail';return 'road';}
+function transport(a,b){
+ if(N[a].icon==='air'&&N[b].icon==='air')return 'air';
+ if(N[a].icon==='port'&&N[b].icon==='port')return 'sea';
+ if(N[a].icon==='rail'&&N[b].icon==='rail')return 'rail';
+ return 'road';
+}
 function routePoints(a,b){
  const A=N[a],B=N[b],ax=A.gridX,ay=A.gridY,bx=B.gridX,by=B.gridY;
- if(transport(a,b)==='sea'){const points=[[1905,1385],[1980,1385],[2180,1550],[2340,1550],[2480,1385],[2555,1385]];return a==='portA'?points:points.reverse();}
- if(transport(a,b)==='rail'){const A=N.railA,B=N.railB,points=[[A.gridX+65,A.gridY+30],[A.gridX+140,A.gridY+65],[B.gridX-140,B.gridY+65],[B.gridX-65,B.gridY+30]];return a==='railA'?points:points.reverse();}
+ if(transport(a,b)==='sea'){
+  // Quay entry points follow the moved ports, rather than legacy fixed coordinates.
+  if([a,b].includes('portC')){
+   const start=N.portA,end=N.portC,points=[[start.gridX+65,start.gridY+25],[GEOGRAPHY.shore+90,start.gridY+40],[2320,start.gridY-50],[2330,end.gridY+80],[end.gridX+65,end.gridY+25]];
+   return a==='portA'?points:points.reverse();
+  }
+  const start=N.portA,end=N.portB,points=[[start.gridX+65,start.gridY+25],[GEOGRAPHY.shore+65,start.gridY+55],[2260,start.gridY+140],[2360,end.gridY+140],[2490,end.gridY+55],[end.gridX-65,end.gridY+25]];
+  return a==='portA'?points:points.reverse();
+ }
+ if(transport(a,b)==='rail'){
+  const start=N.railA,end=N.railB,trackY=GEOGRAPHY.riverY-105,points=[[start.gridX+65,start.gridY+30],[start.gridX+140,start.gridY+70],[start.gridX+170,trackY],[end.gridX-170,trackY],[end.gridX-140,end.gridY+70],[end.gridX-65,end.gridY+30]];
+  return a==='railA'?points:points.reverse();
+ }
  throw Error('此运输段不使用港口或轨道折线');
 }
 const CURVE_CACHE=new Map(),BRIDGE_CACHE=new Map();
 function curve(a,b,offset=0){
  const key=`${a}|${b}|${offset}`;if(CURVE_CACHE.has(key))return CURVE_CACHE.get(key);
  let d;
- if(transport(a,b)==='air'){const A=N.airA,B=N.portB;d=a==='airA'?`M${A.x+55},${A.y-30} C${A.x+250},${A.y-540} ${B.x-250},${B.y-540} ${B.x-55},${B.y-30}`:`M${B.x-55},${B.y-30} C${B.x-250},${B.y-540} ${A.x+250},${A.y-540} ${A.x+55},${A.y-30}`;}
+ if(transport(a,b)==='air'){
+  // Compute the curve from the actual endpoints, including two domestic airports.
+  const [first,last]=[a,b].sort(),A=N[first],B=N[last],dx=B.x-A.x,dy=B.y-A.y,length=Math.hypot(dx,dy),bend=Math.min(500,Math.max(180,length*.24));
+  const nx=dy/length,ny=-dx/length,side=ny>0?-1:1,c1={x:A.x+dx/3+nx*bend*side,y:A.y-35+dy/3+ny*bend*side},c2={x:A.x+dx*2/3+nx*bend*side,y:A.y-35+dy*2/3+ny*bend*side};
+  d=a===first?`M${A.x},${A.y-35} C${c1.x},${c1.y} ${c2.x},${c2.y} ${B.x},${B.y-35}`:`M${B.x},${B.y-35} C${c2.x},${c2.y} ${c1.x},${c1.y} ${A.x},${A.y-35}`;
+ }
  else d=transport(a,b)==='road'?smoothPath(landRoute(a,b)):pathPoints(routePoints(a,b));
  if(!offset){CURVE_CACHE.set(key,d);return d;}
  const probe=el('path',{d}),length=probe.getTotalLength(),samples=[];
@@ -140,17 +169,73 @@ function curve(a,b,offset=0){
 }
 function terrain(){
  const g=$('terrain');const waterDefs=el('defs');waterDefs.innerHTML='<linearGradient id="oceanDepth" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#d5edf2"/><stop offset=".5" stop-color="#bedeea"/><stop offset="1" stop-color="#d8edf0"/></linearGradient>';g.append(waterDefs);const poly=(pts,attrs)=>g.append(el('polygon',{points:pts.map(([x,y])=>{const p=project(x,y);return `${p.x},${p.y}`;}).join(' '),...attrs}));
- poly([[1980,0],[2480,0],[2480,1750],[1980,1750]],{fill:'url(#oceanDepth)',class:'ocean-water'});
- for(let y=70;y<1700;y+=110){const d=pathPoints([[2040,y],[2100,y+8],[2160,y],[2220,y+8],[2280,y],[2340,y+8],[2400,y]]);g.append(el('path',{d,class:'ocean-wave'}));}
- const regions=[{x:0,w:860,name:'产地与始发区域',sub:'供应 · 生产 · 集货',fill:'#edf3e9'},{x:860,w:1120,name:'消费与目的区域',sub:'库存分配 · 城市配送 · 售后',fill:'#eaf2f5'},{x:2480,w:900,name:'境外区域',sub:'口岸 · 海外库存 · 当地交付',fill:'#edf1ea'}];
- for(const r of regions){poly([[r.x,0],[r.x+r.w,0],[r.x+r.w,1720],[r.x,1720]],{fill:r.fill,stroke:'#fff','stroke-width':5,class:'district-top'});const pt=project(r.x+40,-42);const t=el('text',{x:pt.x,y:pt.y,class:'district-name',transform:`rotate(0 ${pt.x} ${pt.y})`});t.textContent=r.name;g.append(t);}
- window.renderLogisticsLandscape({g,project,nodes:N,roads:ROAD_CACHE,el});
+ poly([[GEOGRAPHY.shore,0],[2480,0],[2480,GEOGRAPHY.height],[GEOGRAPHY.shore,GEOGRAPHY.height]],{fill:'url(#oceanDepth)',class:'ocean-water'});
+ for(let y=70;y<GEOGRAPHY.height;y+=110){const d=pathPoints([[2100,y],[2150,y+8],[2200,y],[2250,y+8],[2300,y],[2350,y+8],[2400,y]]);g.append(el('path',{d,class:'ocean-wave'}));}
+ const regions=[{x:0,w:860,name:'生产与始发区域',sub:'供应 · 生产 · 集货',fill:'#edf3e9'},{x:860,w:1200,name:'库存与交付区域',sub:'库存分配 · 城市配送 · 售后',fill:'#eaf2f5'},{x:2480,w:900,name:'境外区域',sub:'口岸 · 海外库存 · 当地交付',fill:'#edf1ea'}];
+ for(const r of regions){poly([[r.x,0],[r.x+r.w,0],[r.x+r.w,GEOGRAPHY.height],[r.x,GEOGRAPHY.height]],{fill:r.fill,stroke:'#fff','stroke-width':5,class:'district-top'});const pt=project(r.x+40,-42);const t=el('text',{x:pt.x,y:pt.y,class:'district-name',transform:`rotate(0 ${pt.x} ${pt.y})`});t.textContent=r.name;g.append(t);}
+ poly([[1840,1130],[2135,1140],[2160,1440],[1840,1450]],{fill:'#eaf2f5',stroke:'#d3e2e5','stroke-width':3,class:'coastal-apron'});
+ window.renderLogisticsLandscape({g,project,nodes:N,roads:ROAD_CACHE,el,geography:GEOGRAPHY});
  const coast=project(2240,430),seaLabel=el('text',{x:coast.x,y:coast.y,class:'sea-label'});seaLabel.textContent='海域';g.append(seaLabel);
 }
 
 function drawArrow(path,color){
  const length=path.getTotalLength(),tip=path.getPointAtLength(length),before=path.getPointAtLength(Math.max(0,length-12)),angle=Math.atan2(tip.y-before.y,tip.x-before.x)*180/Math.PI;
  $('routeArrows').append(el('path',{d:'M3 0L-22 -10L-17 0L-22 10Z',fill:color,stroke:'#ffffff','stroke-width':1.4,'stroke-linejoin':'round',transform:`translate(${tip.x} ${tip.y}) rotate(${angle})`,class:'route-direction'}));
+}
+// A segment names movement between facilities; internal work remains in node cards.
+function segmentName(r,i){
+ const m=mode(),a=r.path[i-1],b=r.path[i],kind=transport(a,b),back=i>r.pivot;
+ if(scenario==='repairedReturn')return ['返送交运','集货转运','公路干线','末端转运','派送'][i-1];
+ if(scenario==='restock'&&i===m.path.length)return '合格品入库运输';
+ if(scenario==='vendorReturn'&&i===m.path.length)return '退供运输';
+ if(scenario==='reroute'&&i===r.path.length-1)return '改址派送';
+ if(scenario==='pickup'&&i===r.path.length-1)return '转自提点';
+ if(scenario==='unclaimed'&&i===r.pivot)return '转自提点';
+ if(scenario==='unclaimed'&&i===r.pivot+1)return '未取退回';
+ if(scenario==='refuse'&&i===r.pivot+1)return '拒收返站';
+ if(scenario==='redelivery'&&i===m.path.length)return '未妥投返站';
+ if(scenario==='redelivery'&&i===m.path.length+1)return '再次派送';
+ if(a===m.path[i-1]&&b===m.path[i])return m.segments[i-1];
+ if(back){
+  if(kind==='air')return '航空返运';
+  if(kind==='sea')return '海运返运';
+  if(kind==='rail')return '铁路返运';
+  if(i===r.path.length-1)return '退回交接';
+  if(scenario==='intercept'&&i===r.pivot+1)return '拦截返运';
+  if(N[a].icon==='sort'&&N[b].icon==='sort')return '返运干线';
+  return '退件转运';
+ }
+ return '交接运输';
+}
+let segmentLabels=[],segmentLabelUnit=0;
+function clearSegmentLabels(){segmentLabels=[];segmentLabelUnit=0;$('routeLabels').replaceChildren();}
+function addSegmentLabel(path,text,tone,index,a,b){
+ // Cache anchor candidates once; panning and facility clicks never recalculate paths.
+ const length=path.getTotalLength(),anchors=[.5,.35,.65,.22,.78].map(t=>{
+  const p=path.getPointAtLength(length*t),before=path.getPointAtLength(Math.max(0,length*t-3)),after=path.getPointAtLength(Math.min(length,length*t+3)),dx=after.x-before.x,dy=after.y-before.y,l=Math.hypot(dx,dy)||1;
+  return {x:p.x,y:p.y,nx:-dy/l,ny:dx/l};
+ });
+ const group=el('g',{class:`route-label ${tone}`,'data-segment':index,'data-from':a,'data-to':b}),leader=el('path',{class:'route-label-leader'}),chip=el('g',{class:'route-label-chip'}),width=text.length*11+18;
+ chip.append(el('rect',{x:-width/2,y:-12,width,height:24,rx:7}));const label=el('text',{class:'segment-name',x:0,y:4});label.textContent=text;chip.append(label);const title=el('title');title.textContent=`${labelForSegment(a)} → ${labelForSegment(b)}：${text}`;group.append(title,leader,chip);$('routeLabels').append(group);
+ segmentLabels.push({group,leader,chip,anchors,width});
+}
+function labelForSegment(id){return label(id);}
+function layoutSegmentLabels(force=false){
+ if(!segmentLabels.length)return;
+ const unit=view.w/Math.max(1,$('mapCanvas').clientWidth);
+ if(!force&&segmentLabelUnit&&Math.abs(unit-segmentLabelUnit)<segmentLabelUnit*.025)return;
+ segmentLabelUnit=unit;
+ const placed=[],facilities=Object.entries(N).map(([id,n])=>{const size=facilitySize(id),half=Math.max(108*size,(label(id).length*23+28)/2);return {left:n.x-half,right:n.x+half,top:n.y-108*size,bottom:n.y+plateY(id)+76};});
+ const intersects=(a,b)=>a.left<b.right&&a.right>b.left&&a.top<b.bottom&&a.bottom>b.top;
+ for(const item of segmentLabels){
+  let best=null;
+  for(const anchor of item.anchors)for(const distance of [20,36,-24,-40]){
+   const x=anchor.x+anchor.nx*distance*unit,y=anchor.y+anchor.ny*distance*unit,box={left:x-item.width*unit/2-3*unit,right:x+item.width*unit/2+3*unit,top:y-15*unit,bottom:y+15*unit},score=facilities.filter(b=>intersects(box,b)).length*100+placed.filter(b=>intersects(box,b)).length*200+Math.abs(distance)/100;
+   if(!best||score<best.score)best={x,y,box,anchor,score};
+   if(score<1)break;
+  }
+  placed.push(best.box);item.chip.setAttribute('transform',`translate(${best.x} ${best.y}) scale(${unit})`);item.leader.setAttribute('d',`M${best.anchor.x} ${best.anchor.y} L${best.x} ${best.y}`);item.leader.setAttribute('stroke-width',unit);
+ }
 }
 function vehicle(path,kind,index){
  const g=el('g',{class:`moving-vehicle vehicle-${kind}`});
@@ -159,7 +244,7 @@ function vehicle(path,kind,index){
  if(kind==='air')g.innerHTML='<path d="M42 0L7 -7 -12 -37 -22 -37 -12 -6 -34 -5 -43 -18 -50 -18 -44 0 -50 18 -43 18 -34 5 -12 6 -22 37 -12 37 7 7Z" fill="#fff" stroke="#235776" stroke-width="3"/><path d="M7 0H30" stroke="#10a4ad" stroke-width="5"/>';
  if(kind==='rail')g.innerHTML='<rect x="-36" y="-19" width="72" height="32" rx="5" fill="#174966" stroke="white" stroke-width="3"/><rect x="-28" y="-14" width="39" height="20" rx="2" fill="#11aeb1"/><rect x="16" y="-13" width="13" height="12" fill="#d4ecf1"/><circle cx="-21" cy="15" r="6" fill="#334b5c"/><circle cx="23" cy="15" r="6" fill="#334b5c"/>';
  const length=path.getTotalLength(),pt=path.getPointAtLength(length*.5);g.setAttribute('transform',`translate(${pt.x},${pt.y})`);
- if(!matchMedia('(prefers-reduced-motion: reduce)').matches){g.removeAttribute('transform');const motion=el('animateMotion',{dur:`${Math.max(9,Math.min(25,length/65))}s`,repeatCount:'indefinite',rotate:kind==='air'?'auto':'0'});motion.append(el('mpath',{href:'#'+path.id}));g.append(motion);}
+ if(!matchMedia('(prefers-reduced-motion: reduce)').matches){g.removeAttribute('transform');const motion=el('animateMotion',{dur:`${Math.max(9,Math.min(25,length/65))/(kind==='road'?1.2:1)}s`,repeatCount:'indefinite',rotate:kind==='air'?'auto':'0'});motion.append(el('mpath',{href:'#'+path.id}));g.append(motion);}
  $('routeVehicles').append(g);
 }
 function initMap(){
@@ -173,31 +258,34 @@ function initMap(){
   const g=el('g',{class:'node','data-node':id,transform:`translate(${n.x} ${n.y})`,role:'button',tabindex:'0','aria-label':`${n.label}：${n.sub}`});
   const decoration=['sort','terminal'].includes(n.icon)?'sort':id==='recycle'?'recycle':id==='returns'?'inspect':id==='parts'?'parcel':null;
   const width=Math.max(126,n.label.length*23+28),size=facilitySize(id),py=plateY(id);n.visualScale=size;
-  g.innerHTML=`<g class="facility-art" transform="scale(${size})"><ellipse class="node-shadow" cx="0" cy="34" rx="94" ry="28"/><polygon class="plot-side" points="-98,16 -30,-23 98,15 98,26 30,66 -98,27"/><polygon class="node-ground" points="-98,16 -30,-23 98,15 30,55"/><polygon class="node-halo" points="-108,16 -30,-32 108,15 30,64"/><g class="site-markings" aria-hidden="true"><path d="M-83 20l13 6m-5 -10l13 6m-5 -10l13 6" stroke="#ccd9de" stroke-width="1.4"/><path d="M65 32l-20 9" stroke="#d9c9a0" stroke-width="1.2"/></g><g class="scene-objects"><image class="facility-image" href="${sceneAsset(id)}" x="-76" y="-104" width="152" height="152" preserveAspectRatio="xMidYMid meet"/>${decoration?`<image class="yard-object" href="assets/icons-3d/${decoration}.png" x="-91" y="14" width="43" height="43"/>`:''}${['warehouse','station'].includes(n.icon)?'<image class="yard-object" href="assets/icons-3d/truck.png" x="43" y="0" width="52" height="52"/>':''}</g></g><g class="nameplate"><rect x="${-width/2}" y="${py}" width="${width}" height="36" rx="10"/><text class="node-label" y="${py+26}">${esc(n.label)}</text></g><text class="node-sub" y="${py+63}">${esc(n.sub)}</text><g class="badge" transform="translate(${67*size},${-56*size})"></g>`;
+  g.innerHTML=`<g class="facility-art" transform="scale(${size})"><ellipse class="node-shadow" cx="0" cy="34" rx="94" ry="28"/><polygon class="plot-side" points="-98,16 -30,-23 98,15 98,26 30,66 -98,27"/><polygon class="node-ground" points="-98,16 -30,-23 98,15 30,55"/><polygon class="node-halo" points="-108,16 -30,-32 108,15 30,64"/><g class="site-markings" aria-hidden="true"><path d="M-83 20l13 6m-5 -10l13 6m-5 -10l13 6" stroke="#ccd9de" stroke-width="1.4"/><path d="M65 32l-20 9" stroke="#d9c9a0" stroke-width="1.2"/></g><g class="scene-objects"><image class="facility-image" href="${sceneAsset(id)}" x="-76" y="-104" width="152" height="152" preserveAspectRatio="xMidYMid meet"/>${decoration?`<image class="yard-object" href="assets/icons-3d/${decoration}.png" x="-91" y="14" width="43" height="43"/>`:''}${['warehouse','station'].includes(n.icon)?'<image class="yard-object" href="assets/icons-3d/truck.png" x="43" y="0" width="52" height="52"/>':''}</g></g><g class="nameplate"><rect x="${-width/2}" y="${py}" width="${width}" height="36" rx="10"/><text class="node-label" y="${py+26}">${esc(n.label)}</text></g><text class="node-sub" y="${py+63}">${esc(n.resource)}</text><g class="badge" transform="translate(${67*size},${-56*size})"></g>`;
   g.addEventListener('click',()=>inspect(id));g.addEventListener('keydown',e=>{if(['Enter',' '].includes(e.key)){e.preventDefault();inspect(id);}});$('nodes').append(g);
  }
 }
-const DOCUMENT_INTROS={
- purchase:'采购确定买什么、向谁买；入厂收货核对到货物料。采购指令与验收入库记录是不同环节。',
- transfer:'补货或调拨安排库存从一个地点移到另一个地点，服务于库存分配，不等于已向最终客户交付。',
- b2b:'围绕企业订单或门店补货发运，收货方通常还需核对数量、批次及交接条件，再确认接收或入库。',
- b2c:'围绕消费者订单，从可履约库存或门店发货到个人收件地点。此前采购和仓网备货属于其他移动。',
- parcel:'个人委托寄递，可寄给个人或企业。收寄、运输与签收由运单记录，企业后续服务另行确认。',
- international:'跨境货流需衔接两侧运输、口岸作业与监管手续。贸易单据、运输单据和申报资料分工不同。',
- return:'退货指令约定物品回到哪个接收地点；物流返运完成后，还需分别确认验收、退款或其他处置。',
- repair:'送修单组织待修品交接，配件单组织备件供应。待修品与配件是两条货流，维修完成后的寄回另行安排。',
- recycle:'回收单组织物品交接与后续处置；载具单组织托盘、周转箱等循环使用。回收接收不等于已完成资源化处理。'
-};
+function resource(id){if(doc!=='overview'&&scenario==='repairedReturn'&&id==='consumer')return N[id].resource;if(doc!=='overview'&&scenario==='vendorReturn'&&id==='factory')return '指定退货接收方';return (doc==='overview'?null:mode().resourceRoles?.[id])||N[id].resource;}
+function evidence(keys){return keys.map(k=>`<a href="${S[k].url}" target="_blank" rel="noopener noreferrer">${esc(S[k].name)} ↗</a>`).join('');}
+function renderService(m){
+ $('guideText').textContent=m.guide;
+ const kinds=[...new Set(m.path.slice(1).map((id,i)=>transport(m.path[i],id)))],actors={road:'道路承运方',sea:'船公司',air:'航空承运人',rail:'铁路承运人'};
+ $('resourceCoordinator').innerHTML=`<span>服务组织方：${esc(m.resourceCoordinator)}</span><small>模式所需运力：${kinds.map(kind=>actors[kind]).join(' · ')}</small>`;
+ $('serviceDetails').innerHTML=`<div class="service-tabs" role="group" aria-label="服务介绍内容"><button data-service-tab="capabilities" aria-pressed="${serviceTab==='capabilities'}">服务能力</button><button data-service-tab="settlement" aria-pressed="${serviceTab==='settlement'}">结算方式</button></div><section data-service-panel="capabilities" ${serviceTab!=='capabilities'?'hidden':''}><h4 class="sr-only">服务能力</h4><ul>${m.capabilities.map(text=>`<li>${esc(text)}</li>`).join('')}</ul><div class="field-sources">${evidence(m.sources)}</div></section><section data-service-panel="settlement" ${serviceTab!=='settlement'?'hidden':''}><h4 class="sr-only">结算方式</h4><dl><dt>计费依据</dt><dd>${esc(m.settlement.basis)}</dd><dt>付款与账期</dt><dd>${esc(m.settlement.payment)}</dd></dl><div class="field-sources">${evidence(m.settlement.sources)}</div></section>`;
+}
+$('serviceDetails').addEventListener('click',e=>{const button=e.target.closest('[data-service-tab]');if(!button)return;serviceTab=button.dataset.serviceTab;$('serviceDetails').querySelectorAll('[data-service-tab]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.serviceTab===serviceTab));$('serviceDetails').querySelectorAll('[data-service-panel]').forEach(panel=>panel.hidden=panel.dataset.servicePanel!==serviceTab);});
 function renderSelectionGuide(m,r){
  const d=D.find(d=>d.id===doc);
  const normal=m.vehicle?'展示本次车辆的取送行程；车辆经过的地点不等于每件货物都经过这些地点。':m.reverse?'按已受理的退货、服务或回收指令返运，终点接收后还需完成相应业务处理。':'按所选模式展示从发运到接收的常规实物移动，图中省略了不影响理解的内部作业。';
- $('selectionGuide').innerHTML=`<article><h3>${esc(d.title)}</h3><p>${esc(DOCUMENT_INTROS[doc])}</p></article><article><h3>${esc(m.title)}</h3><p>${esc(m.summary)}</p></article><article><h3>${esc(sceneNames[scenario])}</h3><p>${esc(r.note||normal)}</p></article>`;
+ $('selectionGuide').innerHTML=`<article><h3>${esc(d.title)}</h3><p>${esc(d.intro)}</p></article><article><h3>${esc(m.title)}</h3><p>${esc(m.summary)}</p></article><article><h3>${esc(sceneNames[scenario])}</h3><p>${esc(r.note||normal)}</p></article>`;
 }
 function renderControls(){
  $('documents').innerHTML=[{id:'overview',title:'总览',sub:'全部设施与代表性连接'},...D].map(d=>`<button class="document-button" data-doc="${d.id}" aria-pressed="${d.id===doc}" title="${esc(d.sub)}">${esc(d.title)}</button>`).join('');
- $('documents').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{doc=b.dataset.doc;if(doc==='overview'){enterOverview();return;}modeId=M.find(m=>m.doc===doc).id;scenario='normal';reset();}));
+ $('documents').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{doc=b.dataset.doc;if(doc==='overview'){enterOverview();return;}modeId=M.find(m=>m.scene===doc).id;scenario='normal';reset();}));
  const isOverview=doc==='overview';$('modeControls').hidden=isOverview;$('scenarioControls').hidden=isOverview;if(isOverview)return;
- const choices=M.filter(m=>m.doc===doc);$('modeSelect').innerHTML=choices.map(m=>`<option value="${m.id}">${esc(m.title)}</option>`).join('');$('modeSelect').value=modeId;$('modeCount').textContent=`${choices.length} 种`;
+ const choices=M.filter(m=>m.scene===doc),list=$('modeList'),scrollTop=list.scrollTop;
+ list.innerHTML=choices.map(m=>`<button class="mode-button" data-mode="${m.id}" aria-pressed="${m.id===modeId}">${esc(m.title)}</button>`).join('');
+ list.scrollTop=scrollTop;
+ const chosen=list.querySelector('[aria-pressed=true]');
+ if(chosen){const top=chosen.offsetTop,bottom=top+chosen.offsetHeight;if(top<list.scrollTop)list.scrollTop=top;else if(bottom>list.scrollTop+list.clientHeight)list.scrollTop=bottom-list.clientHeight;}
+ $('modeCount').textContent=`${choices.length} 种`;
  $('modeHint').textContent=D.find(d=>d.id===doc).sub;
  $('scenarios').innerHTML=available(mode()).map(s=>`<button class="scenario-button" data-scenario="${s}" aria-pressed="${s===scenario}">${sceneNames[s]}</button>`).join('');
  $('scenarios').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{scenario=b.dataset.scenario;reset();}));
@@ -209,8 +297,8 @@ function render(){
  cancelTransitions();lastRenderKey=renderKey;
  $('mapCanvas').classList.toggle('is-overview',doc==='overview');renderControls();if(doc==='overview'){renderOverview();lastRenderKey=renderKey;hasRendered=true;return;}
  const m=mode(),r=currentRoute();renderSelectionGuide(m,r);
- $('coverage').textContent=`${D.length} 类单据范围 · ${M.length} 个路径示例`;
- $('baseEdges').replaceChildren();$('activeEdges').replaceChildren();$('selectedRoads').replaceChildren();$('routeArrows').replaceChildren();for(const id of ['routeUnderlays','routeLines','routeVehicles'])$('activeEdges').append(el('g',{id}));const repeats=new Map();
+ $('coverage').textContent=`${D.length} 类业务场景 · ${M.length} 个服务模式`;
+ $('baseEdges').replaceChildren();$('activeEdges').replaceChildren();$('selectedRoads').replaceChildren();$('routeArrows').replaceChildren();clearSegmentLabels();for(const id of ['routeUnderlays','routeLines','routeVehicles'])$('activeEdges').append(el('g',{id}));const repeats=new Map();
  const roadPairs=new Set(),directions=new Map();for(let i=1;i<r.path.length;i++){const a=r.path[i-1],b=r.path[i],key=[a,b].sort().join('|');if(!directions.has(key))directions.set(key,new Set());directions.get(key).add(a+'>'+b);}
  for(const[a,b]of [...r.path.slice(1).map((id,i)=>[r.path[i],id]),...r.aux]){
   const key=[a,b].sort().join('|');if(roadPairs.has(key))continue;roadPairs.add(key);
@@ -219,7 +307,7 @@ function render(){
   if(kind==='road'){
    if(!BRIDGE_CACHE.has(key)){
     const probe=el('path',{d}),length=probe.getTotalLength(),bridges=[];let previous=null;
-    const riverSide=p=>{const gx=(p.x/1.18-220)/1.12,gy=(p.y/1.18-160)/.98;return gx>=0&&gx<=2010?gy-(1230+28*Math.sin(gx/220)):null;};
+    const riverSide=p=>{const gx=(p.x/1.18-220)/1.12,gy=(p.y/1.18-160)/.98;return gx>=0&&gx<=GEOGRAPHY.shore?gy-(GEOGRAPHY.riverY+28*Math.sin(gx/220)):null;};
     for(let t=0;t<=length;t+=14){const point=probe.getPointAtLength(t),side=riverSide(point);if(previous&&side!==null&&previous.side!==null&&side*previous.side<0){const p=probe.getPointAtLength(t-7),before=probe.getPointAtLength(Math.max(0,t-26)),after=probe.getPointAtLength(Math.min(length,t+12)),angle=Math.atan2(after.y-before.y,after.x-before.x)*180/Math.PI;bridges.push(`translate(${p.x},${p.y}) rotate(${angle})`);}previous={side};}BRIDGE_CACHE.set(key,bridges);
    }
    for(const transform of BRIDGE_CACHE.get(key)){const bridge=el('g',{transform,class:'route-bridge'});bridge.innerHTML='<path d="M-24 -13H24 M-24 13H24" stroke="#7797a8" stroke-width="3"/><path d="M-22 -16V-10 M0 -16V-10 M22 -16V-10 M-22 10V16 M0 10V16 M22 10V16" stroke="#94afbc" stroke-width="2"/>';g.append(bridge);}
@@ -232,28 +320,29 @@ function render(){
   const a=r.path[i-1],b=r.path[i],key=[a,b].sort().join('|'),repeat=repeats.get(key)||0;repeats.set(key,repeat+1);
   const back=i>r.pivot;const path=el('path',{d:curve(a,b,directions.get(key)?.size>1?6:0),id:`travel-${i}`,class:'route-edge '+transport(a,b)+(back?' return-edge':''),'data-direction':back?'back':'main'});if(!repeat)$('routeUnderlays').append(el('path',{d:path.getAttribute('d'),class:'route-underlay'}));if(repeat&&! (directions.get(key)?.size>1)){path.setAttribute('stroke-dasharray','12 8');path.style.strokeWidth='3';}$('routeLines').append(path);drawArrow(path,back?'#d98b39':'#069b9f');
   vehicle(path,transport(a,b),i);
+  const name=segmentName(r,i);if(!segmentLabels.some(item=>item.group.dataset.from===a&&item.group.dataset.to===b&&item.group.querySelector('text').textContent===name))addSegmentLabel(path,name,back?'return-label':'main-label',i,a,b);
  }
- for(const[a,b]of r.aux){const path=el('path',{d:curve(a,b),class:'route-edge aux-edge'});$('routeLines').append(path);drawArrow(path,'#4877bb');}
+ for(const[a,b]of r.aux){const path=el('path',{d:curve(a,b),class:'route-edge aux-edge'});$('routeLines').append(path);drawArrow(path,'#4877bb');addSegmentLabel(path,'备件配送','aux-label','aux',a,b);}
  const active=new Set(r.path),auxIds=new Set(r.aux.flat());
  $('nodes').querySelectorAll('.node').forEach(g=>{
   const id=g.dataset.node;g.classList.toggle('active',active.has(id)||auxIds.has(id));g.classList.toggle('inspected',inspected===id||(!inspected&&r.path[selectedStep]===id));
-  g.querySelector('.facility-image').setAttribute('href',id==='portB'&&m.id==='air'?'assets/map/scenes/airport.png':sceneAsset(id));g.querySelector('.node-label').textContent=label(id);const plateWidth=Math.max(126,label(id).length*23+28);g.querySelector('.nameplate rect').setAttribute('width',plateWidth);g.querySelector('.nameplate rect').setAttribute('x',-plateWidth/2);const indices=r.path.flatMap((v,i)=>v===id?[i+1]:[]),badge=g.querySelector('.badge');
+  g.querySelector('.facility-image').setAttribute('href',sceneAsset(id));g.querySelector('.node-sub').textContent=resource(id);g.querySelector('.node-label').textContent=label(id);const plateWidth=Math.max(126,label(id).length*23+28);g.querySelector('.nameplate rect').setAttribute('width',plateWidth);g.querySelector('.nameplate rect').setAttribute('x',-plateWidth/2);const indices=r.path.flatMap((v,i)=>v===id?[i+1]:[]),badge=g.querySelector('.badge');
   const text=indices.join('·')||(auxIds.has(id)?'配件':'');badge.classList.toggle('aux',!indices.length&&auxIds.has(id));const w=Math.max(26,text.length*8+12);
   badge.innerHTML=text?`<rect x="${-w/2}" y="-11" width="${w}" height="23" rx="11"/><text y="5">${text}</text>`:'';
   g.setAttribute('aria-label',`${label(id)}：${N[id].sub}${indices.length?'；经过顺序 '+indices.join('、'):''}`);
  });
- $('guideText').textContent=m.guide;$('scenarioText').textContent=r.note;
- $('sourceLinks').innerHTML=[...new Set([...m.sources,...(scenario==='normal'?[]:scenario==='customsHold'?['customs']:['intercept','interceptFail','reroute'].includes(scenario)?['ups']:scenario==='unclaimed'?['hold']:scenario==='refuse'?['refusal']:['redelivery','pickup'].includes(scenario)?['fedex']:['gs1'])])].map(k=>`<a href="${S[k].url}" target="_blank" rel="noopener noreferrer">${esc(S[k].name)} ↗</a>`).join('');
+ layoutSegmentLabels(true);renderService(m);$('scenarioText').textContent=r.note;
+ $('sourceLinks').innerHTML=[...new Set([...(scenario==='normal'?[]:['restock','vendorReturn'].includes(scenario)?['returnsCircular']:scenario==='repairedReturn'?['parts']:scenario==='customsHold'?(m.id==='bonded'?['customs']:m.id==='cross-express'?['sfintl']:['fiata','freightquote']):['intercept','interceptFail','reroute'].includes(scenario)?['ups']:scenario==='unclaimed'?['hold']:scenario==='refuse'?['refusal']:['redelivery','pickup'].includes(scenario)?['fedex']:['gs1'])])].map(k=>`<a href="${S[k].url}" target="_blank" rel="noopener noreferrer">${esc(S[k].name)} ↗</a>`).join('');
  document.querySelector('.journey').hidden=false;renderJourney();renderDetail();renderMini();if(changed&&hasRendered)animateChange();hasRendered=true;
 }
 function enterOverview(){stopReplay();doc='overview';inspected=null;selectedStep=0;render();overview(true);}
 function renderOverview(){
- $('coverage').textContent=`${Object.keys(N).length} 个设施 · ${M.length} 个路径示例`;
- $('selectionGuide').innerHTML='<article><h3>总览</h3><p>查看生产、仓储、分拨、交付、口岸与服务设施的分布。淡色连线汇总代表性模式中的连接，不表示一件货物需要经过全部节点。点击设施查看作业说明；选择具体单据后比较对应链路。</p></article>';
- $('baseEdges').replaceChildren();$('activeEdges').replaceChildren();$('selectedRoads').replaceChildren();$('routeArrows').replaceChildren();const pairs=new Set();
+ $('coverage').textContent=`${Object.keys(N).length} 个设施 · ${M.length} 个服务模式`;
+ $('selectionGuide').innerHTML='<article><h3>总览</h3><p>查看生产、仓储、分拨、交付、口岸与服务设施的分布。淡色连线汇总代表性模式中的连接，不表示一件货物需要经过全部节点。点击设施查看作业说明；选择具体场景后比较服务模式。</p></article>';
+ $('baseEdges').replaceChildren();$('activeEdges').replaceChildren();$('selectedRoads').replaceChildren();$('routeArrows').replaceChildren();clearSegmentLabels();const pairs=new Set();
  for(const m of M)for(const[a,b]of [...m.path.slice(1).map((id,i)=>[m.path[i],id]),...(m.aux||[])]){const key=[a,b].sort().join('|');if(pairs.has(key))continue;pairs.add(key);$('baseEdges').append(el('path',{d:curve(a,b),class:'overview-connection '+transport(a,b)}));}
- $('nodes').querySelectorAll('.node').forEach(g=>{const id=g.dataset.node;g.classList.remove('active');g.classList.toggle('inspected',id===inspected);g.querySelector('.node-label').textContent=N[id].label;g.querySelector('.facility-image').setAttribute('href',sceneAsset(id));const w=Math.max(126,N[id].label.length*23+28),plate=g.querySelector('.nameplate rect');plate.setAttribute('width',w);plate.setAttribute('x',-w/2);g.querySelector('.badge').replaceChildren();g.setAttribute('aria-label',`${N[id].label}：${N[id].sub}`);});
- $('guideText').textContent='这张总览按设施功能展示行业中的代表性连接。仓库管理库存与出入库，分拣和货运设施衔接运输段，口岸连接境内外网络，服务设施承接维修、退货或回收。淡线仅供认识网络结构，具体货流请按单据范围和模式选择。';$('scenarioText').textContent='';$('sourceLinks').innerHTML=['gs1','dhl','upu'].map(k=>`<a href="${S[k].url}" target="_blank" rel="noopener noreferrer">${esc(S[k].name)} ↗</a>`).join('');document.querySelector('.journey').hidden=true;$('journeySteps').replaceChildren();renderDetail();renderMini();
+ $('nodes').querySelectorAll('.node').forEach(g=>{const id=g.dataset.node;g.classList.remove('active');g.classList.toggle('inspected',id===inspected);g.querySelector('.node-label').textContent=N[id].label;g.querySelector('.node-sub').textContent=N[id].resource;g.querySelector('.facility-image').setAttribute('href',sceneAsset(id));const w=Math.max(126,N[id].label.length*23+28),plate=g.querySelector('.nameplate rect');plate.setAttribute('width',w);plate.setAttribute('x',-w/2);g.querySelector('.badge').replaceChildren();g.setAttribute('aria-label',`${N[id].label}：${N[id].sub}`);});
+ $('serviceDetails').replaceChildren();$('resourceCoordinator').textContent='设施下方为资源方角色；同一企业可以承担多个角色。';$('guideText').textContent='这张总览按设施功能展示行业中的代表性连接。仓库管理库存与出入库，分拣和货运设施衔接运输段，口岸连接境内外网络，服务设施承接维修、退货或回收。淡线仅供认识网络结构，具体货流请按场景和服务模式选择。';$('scenarioText').textContent='';$('sourceLinks').innerHTML=['gs1','dhl','upu'].map(k=>`<a href="${S[k].url}" target="_blank" rel="noopener noreferrer">${esc(S[k].name)} ↗</a>`).join('');document.querySelector('.journey').hidden=true;$('journeySteps').replaceChildren();renderDetail();renderMini();
 }
 const FACILITY_GUIDANCE={
  factory:'把生产作业与物流交接分开理解：物料到厂、厂内供料、成品发运可能分别对应不同任务。先确认本次货物是生产物料还是成品，再看它从哪个收发接口进入或离开工厂。',
@@ -285,15 +374,18 @@ function renderFocus(){
 }
 function renderDetail(){
  const r=currentRoute(),id=inspected||r.path[selectedStep]||'factory',n=N[id],index=r.path[selectedStep]===id?selectedStep:r.path.indexOf(id);
- $('nodeTitle').textContent=label(id);
+ $('nodeTitle').textContent=label(id);$('nodeResource').textContent=`资源方：${resource(id)}`;
  let work=n.work;
  if(doc!=='overview'&&id==='consumer'&&mode().reverse&&r.path[0]===id)work='在个人地址核对已受理的退货、送修或回收委托，准备物品并按约定交件。实际接收地址由受理方指定，业务申请与承运方接货分别确认。';
+ if(doc!=='overview'&&scenario==='repairedReturn'&&id==='repair')work='本情景假定维修处理已经完成，先核对维修结果与返送指令，再复核包装及收件信息，按确认的寄递安排交接发运。维修结果与物流返送分别记录。';
+ if(doc!=='overview'&&scenario==='vendorReturn'&&id==='factory')work='这里是业务指令指定的退货接收方。核对退回货与业务资料，检查并记录物品状态，再按确认指令衔接后续处置；不把接收退货直接视为生产领料。';
+ if(doc!=='overview'&&modeId==='rti-flow'&&['business','factory'].includes(id))work=id==='business'?'这里交出待回收的托盘、周转箱等载具，核对标识、数量和状态，按回收安排交接。载具与其中曾装载的商品分别管理。':'这里接收再次投入周转的载具，核对标识与数量，记录接收和状态，再按使用计划安排周转。不是商品退货后的生产领料。';
  $('nodeText').textContent=work;
  $('nodeGuide').textContent=SPECIFIC_GUIDANCE[id]||FACILITY_GUIDANCE[n.icon];
  let handoff='';
  if(index>=0){const before=index?label(r.path[index-1]):null,after=r.path[index+1]?label(r.path[index+1]):null;handoff=before&&after?`本次衔接：${before} → ${label(id)} → ${after}。`:after?`本次发运起点，下一交接地点：${after}。`:before?`本次到达地点，上一交接地点：${before}。`:'本情景未产生运输移动。';if(r.hold&&index===r.path.length-1)handoff+=' 当前等待处理，尚未完成原定交付。';}
  else handoff=doc==='overview'?'总览展示该设施的通用功能；选择具体模式后可查看本次上下游衔接。':r.aux.flat().includes(id)?'本例蓝线表示独立的备件供应货流。':'该设施不在当前所选链路中。';
- $('handoff').textContent=handoff;
+ $('handoff').textContent=handoff;const ops=index>=0?visitOperations(r,index):null;$('nodeSources').innerHTML=evidence([...new Set([...n.sources,...(ops?.sources||[])])]);
 }
 function focusNode(id,width=null){
  const n=N[id],g=$('nodes').querySelector(`[data-node="${id}"]`),bounds=g.getBBox(),cx=n.x+bounds.x+bounds.width/2,cy=n.y+bounds.y+bounds.height/2;
@@ -302,7 +394,7 @@ function focusNode(id,width=null){
 }
 function inspect(id,width=null,step=null){stopReplay();const index=currentRoute().path.indexOf(id);selectedStep=step??Math.max(0,index);inspected=id;render();focusNode(id,width);}
 function applyView(v){
- view=v;syncZoom();$('network').setAttribute('viewBox',`${v.x} ${v.y} ${v.w} ${v.h}`);
+ view=v;syncZoom();$('network').setAttribute('viewBox',`${v.x} ${v.y} ${v.w} ${v.h}`);layoutSegmentLabels();
  const rect=$('minimap').querySelector('[data-viewport]');if(rect)for(const k of ['x','y','width','height'])rect.setAttribute(k,k==='width'?v.w:k==='height'?v.h:v[k]);
 }
 function setView(v,animated=false){
@@ -320,13 +412,13 @@ function fitRoute(animated=true){
  for(const id of ids){const n=N[id],size=facilitySize(id),half=Math.max(108*size,(label(id).length*23+28)/2,n.sub.length*7);xs.push(n.x-half,n.x+half);ys.push(n.y-108*size,n.y+plateY(id)+76);}
  $('activeEdges').querySelectorAll('.route-edge').forEach(e=>{const b=e.getBBox();xs.push(b.x,b.x+b.width);ys.push(b.y,b.y+b.height);});
  const canvas=$('mapCanvas'),cw=canvas.clientWidth,ch=canvas.clientHeight,overlay=document.querySelector('.chain-overlay'),reserve=cw>680?Math.max(overlay.offsetWidth,document.querySelector('.location-overlay').offsetWidth)+44:0;
- const minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys),unit=Math.max((maxX-minX+150)/Math.max(200,cw-reserve-50),(maxY-minY+130)/Math.max(250,ch-70),850/cw),w=unit*cw,h=unit*ch,cx=(minX+maxX)/2+reserve*unit/2,cy=(minY+maxY)/2+35*unit;
+ const minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys),unit=Math.max((maxX-minX+150)/Math.max(200,cw-reserve-50),(maxY-minY+130)/Math.max(160,ch-160),850/cw),w=unit*cw,h=unit*ch,cx=(minX+maxX)/2+reserve*unit/2,cy=(minY+maxY)/2-5*unit;
  setView({x:cx-w/2,y:cy-h/2,w,h},animated);
 }
 function overview(animated=true){
  viewKind='overview';
  // Fit the actual map region in the full canvas instead of an inset beside the panels.
- const canvas=$('mapCanvas'),cw=canvas.clientWidth,ch=canvas.clientHeight,topLeft=project(0,-70),bottomRight=project(3380,1770),unit=Math.max((bottomRight.x-topLeft.x)/Math.max(240,cw-60),(bottomRight.y-topLeft.y)/Math.max(250,ch-80)),w=unit*cw,h=unit*ch,cx=(topLeft.x+bottomRight.x)/2,cy=(topLeft.y+bottomRight.y)/2;
+ const canvas=$('mapCanvas'),cw=canvas.clientWidth,ch=canvas.clientHeight,topLeft=project(0,-70),bottomRight=project(3380,GEOGRAPHY.height+40),unit=Math.max((bottomRight.x-topLeft.x)/Math.max(240,cw-60),(bottomRight.y-topLeft.y)/Math.max(250,ch-80)),w=unit*cw,h=unit*ch,cx=(topLeft.x+bottomRight.x)/2,cy=(topLeft.y+bottomRight.y)/2;
  setView({x:cx-w/2,y:cy-h/2,w,h},animated);
 }
 
@@ -337,18 +429,44 @@ function zoom(f){zoomTo(view.w*f);}
 function renderMini(){
  if(!$('minimap'))return;const r=currentRoute(),active=new Set(r.path);$('minimap').innerHTML=`<rect x="0" y="0" width="5133" height="3009" rx="60" fill="#eef5fa"/>${Object.entries(N).map(([id,n])=>`<circle cx="${n.x}" cy="${n.y}" r="${active.has(id)?22:14}" fill="${active.has(id)?'#087f72':'#a9bfd1'}"/>`).join('')}<rect data-viewport x="${view.x}" y="${view.y}" width="${view.w}" height="${view.h}" fill="#087f7210" stroke="#087f72" stroke-width="10"/>`;
 }
+// Visit-specific teaching sequences: shipping, receiving and exceptions are distinct.
+function visitOperations(r,i){
+ const id=r.path[i],n=N[id],last=i===r.path.length-1,next=r.path[i+1],returning=i>r.pivot;
+ let key=n.operations[i===0?'outbound':last?'inbound':'through'];
+ if(n.icon==='air'||n.icon==='port'||n.icon==='rail'){
+  const sameTransport=next&&N[next].icon===n.icon;
+  key=n.operations[sameTransport?'outbound':'inbound'];
+ }
+ if(mode().vehicle&&['supplier','supplier2'].includes(id))key='milkrun';
+ if(['station','foreignStation','origin'].includes(id)){
+  if(returning||(mode().reverse&&scenario!=='repairedReturn'))key='reverseStation';
+  else if(scenario==='redelivery'&&i>mode().path.length-1)key='reschedule';
+  else if(next==='pickup')key='sort';
+ }
+ if(returning&&last&&n.icon==='warehouse'&&scenario!=='restock')key='returnProcess';
+ if(mode().operationOverrides?.[id])key=mode().operationOverrides[id];
+ if(scenario==='vendorReturn'&&last)key='returnProcess';
+ if(scenario==='repairedReturn'&&i===0)key='repairShip';
+ if(scenario==='refuse'&&i===r.pivot)key='refuse';
+ if(scenario==='unclaimed'&&i===r.pivot)key='unclaimed';
+ if(scenario==='intercept'&&i===r.pivot)key='intercept';
+ if(scenario==='redelivery'&&i===mode().path.length-1)key='failedDelivery';
+ // A hold is a stop in the operation sequence, never a completed dispatch/receipt.
+ if(last&&r.hold)key=scenario;
+ return window.LOGISTICS_MAP_DATA.operationProfiles[key];
+}
 function renderJourney(){
  const r=currentRoute(),current=inspected||r.path[selectedStep];
  $('journeySteps').innerHTML=r.path.map((id,i)=>{
-  const n=N[id],asset=id==='portB'&&mode().id==='air'?'assets/map/scenes/airport.png':sceneAsset(id),phase=r.path.length===1?'未发运 / 待处理':i===0?'本次发运起点':i===r.path.length-1?(r.hold?'当前等待处理':'本次到达地点'):'途中作业与交接';
-  return `${i?'<span class="step-arrow" aria-hidden="true">→</span>':''}<button class="step-button journey-card ${i>r.pivot?'back':''}" data-step="${i}" aria-current="${id===current&&i===selectedStep?'step':'false'}" aria-label="第${i+1}环节：${esc(label(id))}"><div class="journey-card-head"><img src="${asset}" width="54" height="54" alt=""><div><h4>${esc(label(id))}</h4><p>${esc(n.sub)}</p></div></div><div class="journey-card-body"><div class="journey-number">${String(i+1).padStart(2,'0')} / ${String(r.path.length).padStart(2,'0')}</div><p>${esc(n.work)}</p></div><div class="journey-card-foot">${phase}</div></button>`;
+  const n=N[id],asset=sceneAsset(id),ops=visitOperations(r,i),phase=r.path.length===1?'未发运 / 待处理':i===0?'本次发运起点':i===r.path.length-1?(r.hold?'当前等待处理':'本次到达地点'):'途中作业与交接';
+  return `${i?`<span class="journey-link ${i>r.pivot?'back':''}"><span class="journey-link-label">${esc(segmentName(r,i))}</span><span class="step-arrow" aria-hidden="true">→</span></span>`:''}<button class="step-button journey-card ${i>r.pivot?'back':''}" data-step="${i}" aria-current="${id===current&&i===selectedStep?'step':'false'}" aria-label="第${i+1}环节：${esc(label(id))}。站内操作：${esc(ops.steps.join('，然后'))}" title="${esc(ops.steps.join(' → '))}。依据：${esc(ops.sources.map(k=>S[k].name).join('、'))}"><div class="journey-card-head"><img src="${asset}" width="54" height="54" alt=""><div><h4>${esc(label(id))}</h4><p>${esc(resource(id))}</p></div></div><div class="journey-card-body"><ol class="journey-operations">${ops.steps.map((step,j)=>`<li><span class="operation-order" aria-hidden="true">${j+1}</span><span>${esc(step)}</span></li>`).join('')}</ol></div><div class="journey-card-foot"><span class="journey-number">${String(i+1).padStart(2,'0')} / ${String(r.path.length).padStart(2,'0')}</span><span>${phase}</span></div></button>`;
  }).join('');
- sizeJourney();
+ sizeJourney();$('journeySteps').getBoundingClientRect();$('journeySteps').scrollLeft=0;
  $('journeySteps').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{const step=Number(b.dataset.step);inspect(r.path[step],null,step);}));
 }
 function sizeJourney(){
  if(doc==='overview')return;
- const box=$('journeySteps'),count=currentRoute().path.length,available=box.clientWidth,gap=24,min=innerWidth<=680?154:140,max=count<3?360:310,width=Math.max(min,Math.min(max,(available-(count-1)*gap-4)/count));
+ const box=$('journeySteps'),count=currentRoute().path.length,available=box.clientWidth,gap=76,min=190,max=count<3?360:310,width=Math.max(min,Math.min(max,(available-(count-1)*gap-4)/count));
  box.style.setProperty('--journey-card-width',`${width}px`);
  box.classList.toggle('journey-overflow',count*width+(count-1)*gap>available);
 }
@@ -359,7 +477,7 @@ $('replayBtn').addEventListener('click',()=>{
  replay=setInterval(()=>{const r=currentRoute();if(selectedStep>=r.path.length-1){stopReplay();return;}selectedStep++;inspected=r.path[selectedStep];render();focusNode(inspected);$('journeySteps').querySelector('[aria-current=step]')?.scrollIntoView({behavior:reducedMotion()?'instant':'smooth',block:'nearest',inline:'center'});if(selectedStep===r.path.length-1)stopReplay();},1500);
 });
 $('zoomSlider').addEventListener('input',e=>zoomTo(ZOOM_MAX*Math.pow(ZOOM_MIN/ZOOM_MAX,Number(e.target.value)/100),false));
-$('modeSelect').addEventListener('change',e=>{modeId=e.target.value;scenario='normal';reset();});$('fitBtn').addEventListener('click',fitRoute);$('overviewBtn').addEventListener('click',overview);$('zoomIn').addEventListener('click',()=>zoom(.8));$('zoomOut').addEventListener('click',()=>zoom(1.25));
+$('modeList').addEventListener('click',e=>{const button=e.target.closest('[data-mode]');if(!button||button.dataset.mode===modeId)return;modeId=button.dataset.mode;scenario='normal';reset();});$('fitBtn').addEventListener('click',fitRoute);$('overviewBtn').addEventListener('click',overview);$('zoomIn').addEventListener('click',()=>zoom(.8));$('zoomOut').addEventListener('click',()=>zoom(1.25));
 const canvas=$('mapCanvas');canvas.addEventListener('pointerdown',e=>{if(e.target.closest('.node')||e.target.closest('button')||e.target.closest('.chain-overlay')||e.target.closest('.map-navigation')||e.target.closest('.location-overlay'))return;cancelWheel();cancelCamera();drag={x:e.clientX,y:e.clientY,view:{...view}};canvas.setPointerCapture(e.pointerId);canvas.classList.add('dragging');});canvas.addEventListener('pointermove',e=>{if(!drag)return;viewKind='manual';const factor=drag.view.w/canvas.clientWidth;setView({...drag.view,x:drag.view.x-(e.clientX-drag.x)*factor,y:drag.view.y-(e.clientY-drag.y)*factor});});for(const name of ['pointerup','pointercancel'])canvas.addEventListener(name,()=>{drag=null;canvas.classList.remove('dragging');});
 // Batch wheel events into one view update per frame, anchored under the pointer.
 canvas.addEventListener('wheel',e=>{
@@ -375,11 +493,11 @@ canvas.addEventListener('wheel',e=>{
  });
 },{passive:false});
 function showDialog(title,html){$('dialogTitle').textContent=title;$('dialogBody').innerHTML=html;$('infoDialog').showModal();}
-$('sourcesBtn').addEventListener('click',()=>showDialog('资料依据与路径归纳',`<p>本图将行业机构标准、监管部门说明及物流企业公开服务归纳为教学路径。企业实例用于说明一种模式，不代表行业通用名称或其他公司的现行规程。链路是示例，不是真实订单轨迹。</p>${Object.entries(S).map(([k,s])=>`<article><a href="${s.url}" target="_blank" rel="noopener noreferrer">${esc(s.name)} ↗</a><p>${esc(s.scope)}</p></article>`).join('')}<article><b>覆盖范围</b><p>涵盖一般采购与生产物流、库存分配、寄递与货运、仓配、国际运输和逆向物流的代表性结构。危险品、医药、超限项目、工程与其他专用物流需要在这些结构上补充专门设施、资质、操作和监管要求，本图未逐项展开。</p></article>`));
-$('helpBtn').addEventListener('click',()=>showDialog('怎样使用这张地图',`<article><b>1. 先选这次移动的业务目的</b><p>采购、补货、销售履约和售后服务可能属于同一供应链，却是不同的单据与实物移动。消费者订单发货，不需要把此前工厂生产和仓网备货再走一遍。</p></article><article><b>2. 比较适用的物流模式</b><p>选同一单据范围下的模式，比较直达、网络、越库、仓配或近场组织。全网中的地点位置固定；“聚焦链路”调整视野，“全网”显示所有设施，可拖动或缩放。</p></article><article><b>3. 看箭头、序号，再点设施</b><p>青绿色是主货流，橙色是退回或逆向，蓝色是独立备件货流。地点上的多个序号表示重复经过；点击设施可将它移到视野中心；地图右上角解释当前链路，右下角介绍选中的地点；下方顺序条支持按每次经过查看。</p></article><article><b>4. 再看流程情景</b><p>只提供与所选模式相匹配的情景。取消不凭空生成运输，异常待处理不自动变成退货，申请拦截不等于实际拦截成功。</p></article><article><b>设施名称怎样理解</b><p>仓库按库存与作业功能区分，自营、第三方、平台是运营属性；保税、海外、冷链各有不同维度。B 仓、C 仓在相应模式中作为企业案例标注，不当作全行业必经节点。</p></article>`));
+$('sourcesBtn').addEventListener('click',()=>showDialog('资料依据与路径归纳',`<p>本图将行业机构标准、监管部门说明及物流企业公开服务归纳为教学路径。企业实例用于说明一种模式，不代表行业通用名称或其他公司的现行规程。链路是示例，不是真实订单轨迹。</p>${Object.entries(S).map(([k,s])=>`<article><a href="${s.url}" target="_blank" rel="noopener noreferrer">${esc(s.name)} ↗</a><p>${esc(s.scope)}</p></article>`).join('')}<article><b>覆盖范围</b><p>按供应链、快递快运和货代组织服务模式，分别说明实物环节、资源方、服务能力和结算依据。图中覆盖库存履约、生产入厂、退货与维修、回收与载具周转，以及境内公路/航空寄递和海空运输进出口等代表性模式。跨境陆运口岸、跨境铁路、内河驳船、海空联运和专用大宗设施尚未展开；危险品、医药、超限项目、工程与其他专用物流需要在这些结构上补充专门设施、资质、操作和监管要求，本图未逐项展开。</p></article>`));
+$('helpBtn').addEventListener('click',()=>showDialog('怎样使用这张地图',`<article><b>1. 先选业务场景</b><p>供应链比较库存与作业服务，快递快运比较寄递和托运产品，货代比较运输资源的组织。再选择服务模式，查看环节、资源方、服务能力与结算依据。</p></article><article><b>2. 比较服务模式</b><p>选同一场景下的服务模式，比较直达、网络、越库、仓配或近场组织。全网中的地点位置固定；“聚焦链路”调整视野，“全网”显示所有设施，可拖动或缩放。</p></article><article><b>3. 看箭头、序号，再点设施</b><p>青绿色是主货流，橙色是退回或逆向，蓝色是独立备件货流。地点上的多个序号表示重复经过；点击设施可将它移到视野中心；地图右上角解释当前链路，右下角介绍选中的地点；下方顺序条支持按每次经过查看。</p></article><article><b>4. 再看流程情景</b><p>只提供与所选模式相匹配的情景。取消不凭空生成运输，异常待处理不自动变成退货，申请拦截不等于实际拦截成功。</p></article><article><b>设施名称怎样理解</b><p>仓库按库存与作业功能区分，自营、第三方、平台是运营属性；保税、海外、冷链各有不同维度。资源方按职能标注，同一企业可兼任仓储、运输或组织服务；角色标注不代表资产所有权。</p></article>`));
 $('allNodesBtn').addEventListener('click',()=>{showDialog('认识全部设施',`<div class="facility-directory">${Object.entries(N).map(([id,n])=>`<button data-facility="${id}">${esc(n.label)}<small>${esc(n.sub)}</small></button>`).join('')}</div>`);$('dialogBody').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{$('infoDialog').close();inspect(b.dataset.facility,850);}));});
 $('closeDialog').addEventListener('click',()=>$('infoDialog').close());$('infoDialog').addEventListener('click',e=>{if(e.target===$('infoDialog')){const r=$('infoDialog').getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)$('infoDialog').close();}});
 window.addEventListener('resize',()=>{sizeJourney();if(viewKind==='overview')overview(false);else if(viewKind==='fit')fitRoute(false);else setView({...view});});window.addEventListener('pagehide',()=>{stopReplay();cancelWheel();cancelCamera();cancelTransitions();});
 initMap();render();fitRoute(false);
-window.LOGISTICS_MAP={available,currentRoute,roadGeometry:(a,b)=>landRoute(a,b).map(p=>({x:p.x,y:p.y})),getState:()=>({doc,modeId,scenario}),select:(id,s='normal')=>{if(id==='overview'){enterOverview();return;}const m=M.find(m=>m.id===id);if(!m||!available(m).includes(s))throw Error('无效模式或情景');doc=m.doc;modeId=id;scenario=s;reset();}};
+window.LOGISTICS_MAP={available,currentRoute,roadGeometry:(a,b)=>landRoute(a,b).map(p=>({x:p.x,y:p.y})),getState:()=>({doc,modeId,scenario}),select:(id,s='normal')=>{if(id==='overview'){enterOverview();return;}const m=M.find(m=>m.id===id);if(!m||!available(m).includes(s))throw Error('无效模式或情景');doc=m.scene;modeId=id;scenario=s;reset();}};
 })();
